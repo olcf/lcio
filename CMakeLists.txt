@@ -8,4 +8,4 @@ include_directories(.)
 add_executable(lcio
         conf_parser.c
         conf_parser.h
-        main.c)
+        main.c lcio.h time.c)

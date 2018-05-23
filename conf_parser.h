@@ -17,7 +17,7 @@ struct attr {
 };
 
 struct section {
-    int num_attrs;
+    int num;
     char* key;
     struct attr **attrs;
 };
@@ -28,7 +28,9 @@ struct conf {
     struct section** sections;
 };
 
-struct conf* parse_ini_file(char*);
+struct conf* parse_conf_file(char *);
 void print_cfg(struct conf*);
+struct section* get_section(char*, struct conf*);
+char* get_attr(char* key, struct section* sec);
 
 #endif //FS_BENCH_CONF_PARSER_H

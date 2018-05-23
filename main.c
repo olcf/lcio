@@ -4,8 +4,15 @@
 
 int main(int argc, char** argv) {
     char *name;
-    if (argc == 1) name = strdup("./test.ini");
-    parse_ini_file(name);
+    struct conf* cfg;
+
+    if (argc == 1) {
+        name = strdup("./test.ini");
+    } else {
+        name = argv[1];
+    }
+    cfg = parse_conf_file(name);
+    print_cfg(cfg);
 
     exit(0);
 }

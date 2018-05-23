@@ -10,8 +10,8 @@ void print_cfg(struct conf* cfg){
     fprintf(stderr, "%s\nCONTENTS:\n", cfg->file_name);
     fprintf(stderr, "  num_sections: %d \n", cfg->num);
     for(i=0; i < cfg->num; ++i){
-        fprintf(stderr, "  %s: num attrs %d\n", cfg->sections[i]->key, cfg->sections[i]->num_attrs);
-        for(j=0; j < cfg->sections[i]->num_attrs; ++j){
+        fprintf(stderr, "  %s: num attrs %d\n", cfg->sections[i]->key, cfg->sections[i]->num);
+        for(j=0; j < cfg->sections[i]->num; ++j){
             fprintf(stderr, "    %s = %s\n", cfg->sections[i]->attrs[j]->key, cfg->sections[i]->attrs[j]->val);
         }
     }
@@ -26,7 +26,6 @@ void cfg_read_attr(char* buf, struct section* s, int num){
     a->val = malloc(sizeof(char) * 64);
 
     sscanf(buf, "%[^= ] = %s", a->key, a->val);
-    fprintf(stderr, "%s :: %s\n", a->key, a->val);
     s->attrs[num] = a;
 }
 
@@ -44,7 +43,6 @@ void cfg_read_section(struct conf *cfg, char* name, int sec_num, FILE* fd){
     //get current position in file. Know that it is at the first line after the section header
     pos = ftell(fd);
 
-    fprintf(stderr, "pos: %lld\n", pos);
     while (1){
         if(fgets(buf, 128, fd) == NULL) break;
         if(buf[0] == '[') break;
@@ -55,7 +53,7 @@ void cfg_read_section(struct conf *cfg, char* name, int sec_num, FILE* fd){
     fseek(fd, pos, SEEK_SET);
     //have found the number of attrs in this section, now read them
     sec->attrs = malloc(sizeof(struct attr*) * count);
-    sec->num_attrs = count;
+    sec->num = count;
     count = 0;
     while (fgets(buf, 128, fd) != NULL){
         if(buf[0] == '[') break;
@@ -77,7 +75,25 @@ void cfg_alloc_sections(struct conf *cfg){
     }
 }
 
-struct conf* parse_ini_file(char* name){
+struct section* get_section(char* section_name, struct conf* cfg){
+    int i;
+
+    for(i=0; i < cfg->num; ++i){
+        if(!strcmp(section_name, cfg->sections[i]->key)) return cfg->sections[i];
+    }
+    return NULL;
+}
+
+char* get_attr(char* key, struct section* sec){
+    int i;
+
+    for(i=0; i < sec->num; ++i){
+        if(!strcmp(key, sec->attrs[i]->key)) return sec->attrs[i]->val;
+    }
+    return NULL;
+}
+
+struct conf* parse_conf_file(char *name){
     FILE* fd;
     struct conf *cfg;
     char* buf;
@@ -103,7 +119,6 @@ struct conf* parse_ini_file(char* name){
     while(fgets(buf, 128, fd) != NULL){
         //if(buf[0] == '#' || buf[0] == ';') continue;
         if (buf[0] == '['){
-            fprintf(stderr, "found sec %s\n", buf);
             sscanf(buf, "[%[^][]]", sec_name);
             cfg_read_section(cfg, sec_name, num_sections, fd);
             num_sections += 1;
