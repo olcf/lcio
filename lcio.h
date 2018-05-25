@@ -29,24 +29,6 @@
 double get_time(void);
 double elapsed_time(double, double);
 
-/*
- * lcio_engine_t describes the operations that lcio will perform.
- * These are function pointers that can be initialized with any
- * of the supported IO libraries (POSIX, MPI_IO, AIO) with the
- * goal of creating a uniform interface for the function calls.
- */
-typedef struct lcio_engine {
-    char *name;
-    void*(*create)(void*);
-    void*(*open)(void*);
-    void*(*close)(void*);
-    void*(*delete)(void*);
-    void*(*stat)(void*);
-    void*(*mkdir)(void*);
-    void*(*rmdir)(void*);
-    void*(*fsync)(void*);
-
-} lcio_engine_t;
 
 /*
  * lcio_param_t and lcio_job_t describe the global parameters
@@ -56,9 +38,11 @@ typedef struct lcio_engine {
  * group.
  * If this is modified, need to modify [params.c]
  */
+struct lcio_engine;
 typedef struct lcio_job {
     char* engine;
     int num_pes;
+    struct lcio_engine* ioengine;
 } lcio_job_t;
 
 typedef struct lcio_param {
@@ -69,5 +53,23 @@ typedef struct lcio_param {
 
 lcio_param_t* fill_parameters(struct conf*);
 void print_params(lcio_param_t*);
+
+/*
+ * lcio_engine_t describes the operations that lcio can perform.
+ * These are function pointers that can be initialized with any
+ * of the supported IO libraries (POSIX, MPI_IO, AIO) with the
+ * goal of creating a uniform interface for the function calls.
+ */
+typedef struct lcio_engine {
+    char *name;
+    void *(*create)(char*, lcio_job_t*);
+    void *(*open)(char*, lcio_job_t*);
+    void (*close)(char*, lcio_job_t*);
+    void (*delete)(char*, lcio_job_t*);
+    int  (*stat)(void*);
+    void (*fsync)(void*);
+
+} lcio_engine_t;
+
 
 #endif //LCIO_LCIO_H
