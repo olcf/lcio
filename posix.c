@@ -30,15 +30,31 @@ void posix_delete(char* fn, lcio_job_t* job){
     unlink(fn);
 }
 
+void* posix_write(int fdes, void* buf, size_t nb){
+    ssize_t *rv;
+    *rv = write(fdes, buf, nb);
+    return (void*)rv;
+}
+
+void* posix_read(int fdes, void* buf, size_t nb){
+    ssize_t *rv;
+    *rv = read(fdes, buf, nb);
+    return (void*)rv;
+}
 
 static lcio_engine_t ioengine = {
     .name = "POSIX",
     .create = posix_create,
     .open = posix_open,
     .close = posix_close,
-    .delete = posix_delete
-
+    .delete = posix_delete,
+    .write = posix_write,
+    .read = posix_read
 };
+
+void register_ioengine(lcio_job_t *job){
+    job->ioengine = &ioengine;
+}
 
 
 

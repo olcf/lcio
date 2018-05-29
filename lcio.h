@@ -41,6 +41,7 @@ double elapsed_time(double, double);
 struct lcio_engine;
 typedef struct lcio_job {
     char* engine;
+    char* type;
     int num_pes;
     struct lcio_engine* ioengine;
 } lcio_job_t;
@@ -64,8 +65,10 @@ typedef struct lcio_engine {
     char *name;
     void *(*create)(char*, lcio_job_t*);
     void *(*open)(char*, lcio_job_t*);
-    void (*close)(char*, lcio_job_t*);
+    void (*close)(int, lcio_job_t*);
     void (*delete)(char*, lcio_job_t*);
+    void *(write)(int, void*, size_t);
+    void *(read)(int, void*, size_t);
     int  (*stat)(void*);
     void (*fsync)(void*);
 

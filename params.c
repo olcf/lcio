@@ -17,7 +17,10 @@ void print_params(lcio_param_t* params){
     }
 }
 
-
+/*
+ * Need to change this function every time a parameter is
+ * added to the config file
+ */
 lcio_param_t* fill_parameters(struct conf *cfg){
     lcio_param_t* params;
     struct section* sec;

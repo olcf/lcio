@@ -11,4 +11,6 @@ add_executable(lcio
         main.c
         lcio.h
         time.c
-        params.c)
+        params.c
+        posix.c
+        file_test.c)

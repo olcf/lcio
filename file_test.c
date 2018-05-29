@@ -5,6 +5,11 @@
  * i.e. creation, removal, read, stat, etc
  */
 
+#include "lcio.h"
+
+ void lcio_register_engine(lcio_job_t *job){
+    
+ }
 
 void lcio_create(){
     return;
