@@ -21,7 +21,7 @@ void lcio_register_engine(lcio_job_t *job){
 
     sprintf(lib, "./lib%s.so", job->engine);
     job->lib_name = strdup(lib);
-    handle = dlopen(lib, RTLD_NOW);
+    handle = dlopen(lib, RTLD_LAZY);
     if(!handle){
         fputs(dlerror(), stderr);
         exit(1);
@@ -49,6 +49,21 @@ void lcio_create(lcio_job_t* job){
     }
 }
 
+void lcio_write(lcio_job_t* job){
+    int* fd;
+    int i;
+    char file[64];
+    char buf[job->blk_sz];
+    char* prefix = "/lcio_tmpf.";
+
+    for(i=0; i < job->num_files; ++i){
+        sprintf(file, "%s%s%d",job->tmp_dir, prefix, i);
+        fd = (int*) job->ioengine->open(file, job);
+        job->ioengine->write(fd, job);
+        job->ioengine->close(fd, job);
+    }
+
+}
 
 void lcio_remove(lcio_job_t* job){
     int i;
@@ -58,9 +73,10 @@ void lcio_remove(lcio_job_t* job){
 
     for(i=0; i < job->num_files; ++i){
         sprintf(file, "%s%s%d",job->tmp_dir, prefix, i);
-        job->ioengine->delete(file, job);
+        job->ioengine->remove(file, job);
     }
 }
+
 
 void lcio_setup(lcio_job_t* job){
     lcio_register_engine(job);
@@ -72,20 +88,30 @@ void lcio_setup(lcio_job_t* job){
 void file_test(lcio_job_t* job){
 
     lcio_setup(job);
-    double t1, t2, t3;
+    double times[3];
+    double t1, t2;
+    double final = 0.0;
+    int i;
 
     t1 = get_time();
     lcio_create(job);
     t2 = get_time();
-    t3 = elapsed_time(t2,t1);
-    print_log(t3, "create");
+    times[0] = elapsed_time(t2,t1);
+    print_log(times[0], "create");
+
+    t1 = get_time();
+    lcio_write(job);
+    t2 = get_time();
+    times[1] = elapsed_time(t2,t1);
+    print_log(times[1], "write");
 
     t1 = get_time();
     lcio_remove(job);
     t2 = get_time();
-    print_log(elapsed_time(t2,t1), "delete");
+    times[2] = elapsed_time(t2,t1);
+    print_log(times[2], "remove ");
 
-    t3 += elapsed_time(t2,t1);
+    for(i=0; i <= 2;++i) final += times[i];
+    print_log(final, "final");
 
-    print_log(t3, "final");
 }

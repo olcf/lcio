@@ -32,24 +32,35 @@ void posix_delete(char* fn, lcio_job_t* job){
     unlink(fn);
 }
 
-void* posix_write(int fdes, void* buf, size_t nb){
+void* posix_write(const int* fdes, lcio_job_t* job){
     ssize_t *rv;
-    *rv = write(fdes, buf, nb);
+    char buf[job->blk_sz];
+    rv = malloc(sizeof(ssize_t));
+
+    *rv = write(*fdes, buf, job->blk_sz);
     return (void*)rv;
 }
 
-void* posix_read(int fdes, void* buf, size_t nb){
+void* posix_read(const int* fdes, lcio_job_t* job){
     ssize_t *rv;
-    *rv = read(fdes, buf, nb);
+    char buf[job->blk_sz];
+    rv = malloc(sizeof(ssize_t));
+
+    *rv = read(*fdes, buf, job->blk_sz);
     return (void*)rv;
 }
+
+void posix_fsync(int* fdes, lcio_job_t* job){
+
+}
+
 
 static lcio_engine_t posix_ioengine = {
     .name = "POSIX",
     .create = posix_create,
     .open = posix_open,
     .close = posix_close,
-    .delete = posix_delete,
+    .remove = posix_delete,
     .write = posix_write,
     .read = posix_read
 };

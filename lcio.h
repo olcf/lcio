@@ -26,9 +26,6 @@
     } while(0)
 
 
-double get_time(void);
-double elapsed_time(double, double);
-
 
 /*
  * lcio_param_t and lcio_job_t describe the global parameters
@@ -47,9 +44,10 @@ typedef struct lcio_job {
     void* lib_handle;
     int num_pes;
     int num_files;
-    int buf_size;
+    size_t blk_sz;
     char* tmp_dir;
     int* fd_array;
+    int fsync;
     lcio_engine_t* ioengine;
 } lcio_job_t;
 
@@ -59,8 +57,6 @@ typedef struct lcio_param {
     lcio_job_t** jobs;
 } lcio_param_t;
 
-lcio_param_t* fill_parameters(struct conf*);
-void print_params(lcio_param_t*);
 
 /*
  * lcio_engine_t describes the operations that lcio can perform.
@@ -73,14 +69,21 @@ typedef struct lcio_engine {
     void *(*create)(char*, lcio_job_t*);
     void *(*open)(char*, lcio_job_t*);
     void (*close)(int*, lcio_job_t*);
-    void (*delete)(char*, lcio_job_t*);
-    void *(*write)(int, void*, size_t);
-    void *(*read)(int, void*, size_t);
+    void (*remove)(char*, lcio_job_t*);
+    void *(*write)(const int*, lcio_job_t*);
+    void *(*read)(const int*, lcio_job_t*);
     int  (*stat)(void*);
-    void (*fsync)(void*);
+    void (*fsync)(int*);
 
 } lcio_engine_t;
 
 void file_test(lcio_job_t*);
+
+lcio_param_t* fill_parameters(struct conf*);
+void print_params(lcio_param_t*);
+
+double get_time(void);
+double elapsed_time(double, double);
+
 
 #endif //LCIO_LCIO_H
