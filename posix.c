@@ -22,8 +22,10 @@ void* posix_open(char* fn, lcio_job_t* job){
     return (void*)fd;
 }
 
-void posix_close(int fdes, lcio_job_t* job){
-    close(fdes);
+void posix_close(int* fdes, lcio_job_t* job){
+
+    close(*fdes);
+    free(fdes);
 }
 
 void posix_delete(char* fn, lcio_job_t* job){
@@ -42,7 +44,7 @@ void* posix_read(int fdes, void* buf, size_t nb){
     return (void*)rv;
 }
 
-static lcio_engine_t ioengine = {
+static lcio_engine_t posix_ioengine = {
     .name = "POSIX",
     .create = posix_create,
     .open = posix_open,
@@ -53,7 +55,7 @@ static lcio_engine_t ioengine = {
 };
 
 void register_ioengine(lcio_job_t *job){
-    job->ioengine = &ioengine;
+    job->ioengine = &posix_ioengine;
 }
 
 

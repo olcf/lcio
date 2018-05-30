@@ -5,6 +5,8 @@ set(CMAKE_C_STANDARD 11)
 
 include_directories(.)
 
+add_library(posix MODULE posix.c)
+
 add_executable(lcio
         conf_parser.c
         conf_parser.h
@@ -12,5 +14,4 @@ add_executable(lcio
         lcio.h
         time.c
         params.c
-        posix.c
         file_test.c)

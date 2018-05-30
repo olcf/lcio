@@ -9,6 +9,7 @@
 
 /*
  * Timing structs for general use
+ * all times in microseconds
  */
 
 double get_time(void){

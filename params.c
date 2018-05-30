@@ -41,6 +41,11 @@ lcio_param_t* fill_parameters(struct conf *cfg){
         params->jobs[i] = malloc(sizeof(lcio_job_t));
         params->jobs[i]->num_pes = atoi(get_attr("mpi_num_pes", sec));
         params->jobs[i]->engine = strdup(get_attr("engine", sec));
+        params->jobs[i]->buf_size = atoi(get_attr("buffer_size", sec));
+        params->jobs[i]->type = strdup(get_attr("type", sec));
+        params->jobs[i]->mode = strdup(get_attr("mode", sec));
+        params->jobs[i]->num_files = atoi(get_attr("num_files", sec));
+        params->jobs[i]->tmp_dir = strdup(get_attr("tmp_dir", sec));
     }
     return params;
 }

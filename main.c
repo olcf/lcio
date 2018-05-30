@@ -18,8 +18,9 @@ int main(int argc, char** argv) {
     cfg = parse_conf_file(name);
     params = fill_parameters(cfg);
     print_cfg(cfg);
-
     print_params(params);
+
+    file_test(params->jobs[0]);
 
     exit(0);
 }

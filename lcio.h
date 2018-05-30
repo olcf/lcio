@@ -38,12 +38,19 @@ double elapsed_time(double, double);
  * group.
  * If this is modified, need to modify [params.c]
  */
-struct lcio_engine;
+typedef struct lcio_engine lcio_engine_t;
 typedef struct lcio_job {
+    char* lib_name;
     char* engine;
     char* type;
+    char* mode;
+    void* lib_handle;
     int num_pes;
-    struct lcio_engine* ioengine;
+    int num_files;
+    int buf_size;
+    char* tmp_dir;
+    int* fd_array;
+    lcio_engine_t* ioengine;
 } lcio_job_t;
 
 typedef struct lcio_param {
@@ -65,14 +72,15 @@ typedef struct lcio_engine {
     char *name;
     void *(*create)(char*, lcio_job_t*);
     void *(*open)(char*, lcio_job_t*);
-    void (*close)(int, lcio_job_t*);
+    void (*close)(int*, lcio_job_t*);
     void (*delete)(char*, lcio_job_t*);
-    void *(write)(int, void*, size_t);
-    void *(read)(int, void*, size_t);
+    void *(*write)(int, void*, size_t);
+    void *(*read)(int, void*, size_t);
     int  (*stat)(void*);
     void (*fsync)(void*);
 
 } lcio_engine_t;
 
+void file_test(lcio_job_t*);
 
 #endif //LCIO_LCIO_H
