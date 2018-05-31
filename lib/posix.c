@@ -36,6 +36,7 @@ void* posix_write(const int* fdes, lcio_job_t* job){
     ssize_t *rv;
     char buf[job->blk_sz];
     rv = malloc(sizeof(ssize_t));
+    memset(buf, 'a', job->blk_sz);
 
     *rv = write(*fdes, buf, job->blk_sz);
     return (void*)rv;
@@ -46,10 +47,22 @@ void* posix_read(const int* fdes, lcio_job_t* job){
     char buf[job->blk_sz];
 
     rv = malloc(sizeof(ssize_t));
-    memset(buf, 'a', job->blk_sz);
+
 
     *rv = read(*fdes, buf, job->blk_sz);
     return (void*)rv;
+}
+
+void* posix_stat(char* fn, lcio_job_t* job){
+    struct stat statbuf;
+    int* err;
+
+    err = malloc(sizeof(int));
+    *err = stat(fn, &statbuf);
+    if(statbuf.st_size != job->blk_sz){
+        FILE_WARN(fn, statbuf.st_size , job->blk_sz);
+    }
+    return (void*)err;
 }
 
 void posix_fsync(const int* fdes, lcio_job_t* job){
@@ -65,7 +78,8 @@ static lcio_engine_t posix_ioengine = {
     .remove = posix_delete,
     .write = posix_write,
     .read = posix_read,
-    .fsync = posix_fsync
+    .fsync = posix_fsync,
+    .stat = posix_stat
 };
 
 void register_ioengine(lcio_job_t *job){

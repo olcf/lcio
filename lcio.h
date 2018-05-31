@@ -10,6 +10,7 @@
 #include <sys/param.h>
 #include <limits.h>
 #include <errno.h>
+#include <mpi.h>
 
 #include "conf_parser.h"
 
@@ -26,7 +27,9 @@
     } while(0)
 
 
-
+#define FILE_WARN(FN, S1, S2) fprintf( \
+        stderr, "%s:%d -- WARN: file size mismatch (%s -- %lld :: %ld)\n",\
+        __FILE__,__LINE__,FN, S1, S2);\
 /*
  * lcio_param_t and lcio_job_t describe the global parameters
  * that are needed for the entire run and the parameters for a
@@ -72,7 +75,7 @@ typedef struct lcio_engine {
     void (*remove)(char*, lcio_job_t*);
     void *(*write)(const int*, lcio_job_t*);
     void *(*read)(const int*, lcio_job_t*);
-    int  (*stat)(void*);
+    void *(*stat)(char*, lcio_job_t*);
     void (*fsync)(const int*, lcio_job_t*);
 
 } lcio_engine_t;

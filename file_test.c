@@ -68,16 +68,27 @@ void lcio_write(lcio_job_t* job){
 
 }
 
+void lcio_stat(lcio_job_t* job){
+    int i;
+    char file[64];
+    char* prefix = "/lcio_tmpf.";
+
+    for(i=0; i < job->num_files; ++i){
+        sprintf(file, "%s%s%d",job->tmp_dir, prefix, i);
+        job->ioengine->stat(file, job);
+    }
+}
+
 void lcio_remove(lcio_job_t* job){
     int i;
-    int* fd;
     char file[64];
-    char* prefix = "lcio_tmpf.";
+    char* prefix = "/lcio_tmpf.";
 
     for(i=0; i < job->num_files; ++i){
         sprintf(file, "%s%s%d",job->tmp_dir, prefix, i);
         job->ioengine->remove(file, job);
     }
+    job->ioengine->remove(job->tmp_dir, job);
 }
 
 
@@ -91,30 +102,41 @@ void lcio_setup(lcio_job_t* job){
 void file_test(lcio_job_t* job){
 
     lcio_setup(job);
-    double times[3];
+    double times[16];
     double t1, t2;
     double final = 0.0;
-    int i;
+    int i = 0;
+    int j;
 
     t1 = get_time();
     lcio_create(job);
     t2 = get_time();
-    times[0] = elapsed_time(t2,t1);
-    print_log(times[0], "create");
+    times[i] = elapsed_time(t2,t1);
+    print_log(times[i], "create");
+    i+=1;
 
     t1 = get_time();
     lcio_write(job);
     t2 = get_time();
-    times[1] = elapsed_time(t2,t1);
-    print_log(times[1], "write");
+    times[i] = elapsed_time(t2,t1);
+    print_log(times[i], "write");
+    i+=1;
+
+    t1 = get_time();
+    lcio_stat(job);
+    t2 = get_time();
+    times[i] = elapsed_time(t2,t1);
+    print_log(times[i], "stat ");
+    i+=1;
 
     t1 = get_time();
     lcio_remove(job);
     t2 = get_time();
-    times[2] = elapsed_time(t2,t1);
-    print_log(times[2], "remove ");
+    times[i] = elapsed_time(t2,t1);
+    print_log(times[i], "remove ");
+    i+=1;
 
-    for(i=0; i <= 2;++i) final += times[i];
+    for(j=0; j < i;++j) final += times[j];
     print_log(final, "final");
 
 }
