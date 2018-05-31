@@ -73,7 +73,7 @@ typedef struct lcio_engine {
     void *(*write)(const int*, lcio_job_t*);
     void *(*read)(const int*, lcio_job_t*);
     int  (*stat)(void*);
-    void (*fsync)(int*);
+    void (*fsync)(const int*, lcio_job_t*);
 
 } lcio_engine_t;
 

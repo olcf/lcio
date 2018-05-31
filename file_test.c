@@ -19,7 +19,7 @@ void lcio_register_engine(lcio_job_t *job){
     void* handle;
     void (*register_ioengine)(lcio_job_t*);
 
-    sprintf(lib, "./lib%s.so", job->engine);
+    sprintf(lib, "lib%s.so", job->engine);
     job->lib_name = strdup(lib);
     handle = dlopen(lib, RTLD_LAZY);
     if(!handle){
@@ -60,6 +60,9 @@ void lcio_write(lcio_job_t* job){
         sprintf(file, "%s%s%d",job->tmp_dir, prefix, i);
         fd = (int*) job->ioengine->open(file, job);
         job->ioengine->write(fd, job);
+        if(job->fsync){
+            job->ioengine->fsync(fd, job);
+        }
         job->ioengine->close(fd, job);
     }
 

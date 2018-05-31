@@ -7,8 +7,9 @@ find_package(MPI REQUIRED)
 add_definitions(-DOMPI_SKIP_MPICXX)
 
 include_directories(.)
+link_directories(${CMAKE_SOURCE_DIR}/lib)
 
-add_library(posix MODULE posix.c)
+add_library(posix MODULE lib/posix.c)
 
 add_executable(lcio
         conf_parser.c
