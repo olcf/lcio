@@ -5,6 +5,13 @@
 
 #include "lcio.h"
 
+/*
+ * POSIX IO engine.
+ * Any interface must fill out a lcio_engine_t
+ * struct and implement the
+ * 'void register_ioengine(lcio_job_t*)' function
+ */
+
 void* posix_create(char* fn, lcio_job_t* job){
     int* fd;
     //int flags = O_CREAT | O_RDWR;

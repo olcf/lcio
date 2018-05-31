@@ -10,7 +10,7 @@
 #include <sys/stat.h>
 
 void print_log(double t, char* op){
-    printf("operation: %s\n  elapsed time: %.2lf usec\n\n", op, t);
+    printf("operation: %s\n  elapsed time: %.2lf \n\n", op, t);
 }
 
 void lcio_register_engine(lcio_job_t *job){
@@ -98,6 +98,19 @@ void lcio_setup(lcio_job_t* job){
     mkdir(job->tmp_dir, S_IRWXU | S_IRWXG);
 }
 
+void lcio_teardown(lcio_job_t* job){
+    job->ioengine = NULL;
+    dlclose(job->lib_handle);
+    rmdir(job->tmp_dir);
+}
+
+/*
+ * This is ok for now, but needs some work for
+ * the MPI integration. in particular, needs a more
+ * portable reporting system. Maybe make a 'statistics'
+ * struct?
+ *
+ */
 
 void file_test(lcio_job_t* job){
 
@@ -136,6 +149,7 @@ void file_test(lcio_job_t* job){
     print_log(times[i], "remove ");
     i+=1;
 
+    lcio_teardown(job);
     for(j=0; j < i;++j) final += times[j];
     print_log(final, "final");
 

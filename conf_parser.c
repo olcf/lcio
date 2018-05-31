@@ -12,7 +12,8 @@ void print_cfg(struct conf* cfg){
     for(i=0; i < cfg->num; ++i){
         fprintf(stderr, "  %s: num attrs %d\n", cfg->sections[i]->key, cfg->sections[i]->num);
         for(j=0; j < cfg->sections[i]->num; ++j){
-            fprintf(stderr, "    %s = %s\n", cfg->sections[i]->attrs[j]->key, cfg->sections[i]->attrs[j]->val);
+            fprintf(stderr, "    %s = %s\n",
+                    cfg->sections[i]->attrs[j]->key, cfg->sections[i]->attrs[j]->val);
         }
     }
     fprintf(stderr, "\nEND\n");
