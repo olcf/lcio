@@ -20,7 +20,7 @@ void lcio_register_engine(lcio_job_t *job){
     void (*register_ioengine)(lcio_job_t*);
 
     sprintf(lib, "lib%s.so", job->engine);
-    job->lib_name = strdup(lib);
+    strcpy(job->lib_name, lib);
     handle = dlopen(lib, RTLD_LAZY);
     if(!handle){
         fputs(dlerror(), stderr);
@@ -94,7 +94,7 @@ void lcio_remove(lcio_job_t* job){
 
 void lcio_setup(lcio_job_t* job){
     lcio_register_engine(job);
-    job->fd_array = malloc(sizeof(int) * job->num_files);
+    //job->fd_array = malloc(sizeof(int) * job->num_files);
     mkdir(job->tmp_dir, S_IRWXU | S_IRWXG);
 }
 

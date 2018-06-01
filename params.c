@@ -19,7 +19,7 @@ void print_params(lcio_param_t* params){
 
 void get_buf_sz(char* field, lcio_job_t* job){
     int base;
-    unsigned long exp;
+    unsigned long long exp;
     char scale;
     int err;
 
@@ -41,7 +41,7 @@ void get_buf_sz(char* field, lcio_job_t* job){
             ELOCAL("Invalid scale (must be M or K)");
     }
 
-    job->blk_sz = base * exp;
+    job->blk_sz = (base * exp);
 
 }
 
@@ -64,16 +64,19 @@ lcio_param_t* fill_parameters(struct conf *cfg){
 
     params->jobs = malloc(sizeof(lcio_job_t*) * params->num_jobs);
 
+    /*
+     * TODO: this needs to be cleaned up somewhat
+     */
     for(i=0; i < params->num_jobs; ++i){
         sprintf(buf,"job%d", i);
         sec = get_section(buf, cfg);
         params->jobs[i] = malloc(sizeof(lcio_job_t));
         params->jobs[i]->num_pes = atoi(get_attr("mpi_num_pes", sec));
-        params->jobs[i]->engine = strdup(get_attr("engine", sec));
-        params->jobs[i]->type = strdup(get_attr("type", sec));
-        params->jobs[i]->mode = strdup(get_attr("mode", sec));
+        strcpy(params->jobs[i]->engine, get_attr("engine", sec));
+        strcpy(params->jobs[i]->type, get_attr("type", sec));
+        sscanf(get_attr("mode", sec), "%c", &(params->jobs[i]->mode));
         params->jobs[i]->num_files = atoi(get_attr("num_files", sec));
-        params->jobs[i]->tmp_dir = strdup(get_attr("tmp_dir", sec));
+        strcpy(params->jobs[i]->tmp_dir, get_attr("tmp_dir", sec));
         params->jobs[i]->fsync = atoi(get_attr("fsync", sec));
         get_buf_sz(get_attr("block_size", sec), params->jobs[i]);
     }

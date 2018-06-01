@@ -11,6 +11,7 @@
 #include <limits.h>
 #include <errno.h>
 #include <mpi.h>
+#include <string.h>
 
 #include "conf_parser.h"
 
@@ -40,18 +41,18 @@
  */
 typedef struct lcio_engine lcio_engine_t;
 typedef struct lcio_job {
-    char* lib_name;
-    char* engine;
-    char* type;
-    char* mode;
-    void* lib_handle;
+    char lib_name[32];
+    char tmp_dir[32];
+    char type[16];
+    char engine[8];
     int num_pes;
     int num_files;
-    size_t blk_sz;
-    char* tmp_dir;
-    int* fd_array;
+    unsigned long long blk_sz;
     int fsync;
+    char mode;
+    void* lib_handle;
     lcio_engine_t* ioengine;
+
 } lcio_job_t;
 
 typedef struct lcio_param {
