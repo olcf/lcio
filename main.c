@@ -8,17 +8,29 @@
 int main(int argc, char** argv) {
     MPI_Init(&argc, &argv);
 
+    int world_rank;
     int my_rank;
-    int comm_sz;
+    int grp_sz;
+    int world_sz;
+    int color;
+    int i;
+    MPI_Comm world_comm;
     MPI_Comm group_comm;
-    lcio_job_t* myjob = malloc(sizeof(lcio_job_t));
+    MPI_Group my_group;
 
+    lcio_job_t* myjob;
+    lcio_param_t *params;
     int num_jobs;
+
+    MPI_Comm_dup(MPI_COMM_WORLD, &world_comm);
 
     MPI_Aint cextent, iextent, ullextent, clb, ilb, ulllb;
     MPI_Type_get_extent(MPI_CHAR, &clb, &cextent);
     MPI_Type_get_extent(MPI_INT, &ilb, &iextent);
     MPI_Type_get_extent(MPI_UNSIGNED_LONG_LONG, &ulllb, &ullextent);
+
+    MPI_Comm_size(world_comm, &world_sz);
+    MPI_Comm_rank(world_comm, &world_rank);
 
     /*
      * NOTE: this does not pack the lib_handle and ioengine
@@ -26,29 +38,25 @@ int main(int argc, char** argv) {
      * and do not need to be broadcast.
      */
     MPI_Datatype MPI_LCIO_JOB;
-    const int count = 9;
-    int blens[count] = {32,32,16,8,1,1,1,1,1};
+    const int count = 8;
+    int blens[count] = {32,16,8,1,1,1,1,1};
     MPI_Datatype array_of_types[count] =
-            {MPI_CHAR, MPI_CHAR, MPI_CHAR, MPI_CHAR,
+            {MPI_CHAR, MPI_CHAR, MPI_CHAR,
              MPI_INT, MPI_INT,
              MPI_UNSIGNED_LONG_LONG,
              MPI_INT, MPI_CHAR};
     MPI_Aint disps[count];
 
     /* displacements in struct */
-    disps[0] = (MPI_Aint) 0; //lib_name
-    disps[1] = cextent * 32; //tmp_dir
-    disps[2] = disps[1] + (cextent * 32); //type
-    disps[3] = disps[2] + (cextent * 16); //engine
-    disps[4] = disps[3] + (cextent * 8); //num_pes
-    disps[5] = disps[4] + iextent; //num_files
-    disps[6] = disps[5] + iextent; //blk_sz
-    disps[7] = disps[6] + ullextent; //fsync
-    disps[8] = disps[7] + iextent; //mode
+    disps[0] = (MPI_Aint) 0; //tmp_dir
+    disps[1] = cextent * 32; //type
+    disps[2] = disps[1] + (cextent * 16); //engine
+    disps[3] = disps[2] + (cextent * 8); //num_pes
+    disps[4] = disps[3] + iextent; //num_files
+    disps[5] = disps[4] + iextent; //blk_sz
+    disps[6] = disps[5] + ullextent; //fsync
+    disps[7] = disps[6] + iextent; //mode
 
-
-    MPI_Comm_size(MPI_COMM_WORLD, &comm_sz);
-    MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
 
     /*
      * Create datatype for lcio_job_t
@@ -63,37 +71,62 @@ int main(int argc, char** argv) {
      * global information. For now, this is just the number of jobs
      * since that will be needed for creating the correct number of groups.
      */
-    if( my_rank == 0) {
+    if( world_rank == 0) {
         char *name;
         struct conf *cfg;
-        lcio_param_t *params;
         name = argv[1];
         cfg = parse_conf_file(name);
         params = fill_parameters(cfg);
-        num_jobs = params->num_jobs;
-        myjob = params->jobs[0];
-        //print_cfg(cfg);
+        //num_jobs = params->num_jobs;
+        //myjob = params->jobs[0];
+        print_cfg(cfg);
+    } else {
+        params = malloc(sizeof(lcio_param_t));
     }
-    MPI_Bcast(&num_jobs, 1, MPI_INT, 0, MPI_COMM_WORLD);
-    MPI_Bcast(myjob, 1, MPI_LCIO_JOB, 0, MPI_COMM_WORLD);
 
-    if(my_rank == 1){
-        printf("recved");
+    /*
+     * sorta nasty but other, more slick methods kept giving
+     * me segfaults. Likely due to how the MPI_datatype isnt
+     * a full struct the
+     */
+    MPI_Bcast(&(params->num_jobs), 1, MPI_INT, 0, world_comm);
+
+    if(world_rank != 0){
+        params->jobs = malloc(sizeof(lcio_job_t) * params->num_jobs);
+    }
+
+    MPI_Barrier(world_comm);
+    for(i = 0; i < params->num_jobs; ++i){
+        if(world_rank == 0) {myjob = params->jobs[i];}
+        else { myjob = malloc(sizeof(lcio_job_t));}
+
+        MPI_Bcast(myjob, 1, MPI_LCIO_JOB, 0, world_comm);
+        if(world_rank != 0) params->jobs[i] = myjob;
+    }
+    MPI_Barrier(world_comm);
+
+    color = world_rank % params->num_jobs;
+    MPI_Comm_split(world_comm, color, world_rank, &group_comm);
+
+    MPI_Comm_size(group_comm, &grp_sz);
+    MPI_Comm_rank(group_comm, &my_rank);
+
+    myjob = params->jobs[color];
+
+        printf("recved\n");
         printf("==============\n");
-        printf(" lib_name:%s\n", myjob->lib_name);
-        printf(" tmp_dir:%s\n", myjob->tmp_dir);
-        printf(" type:%s\n", myjob->type);
-        printf(" engine:%s\n", myjob->engine);
-        printf(" pes:%d\n", myjob->num_pes);
-        printf(" num_files:%d\n", myjob->num_files);
-        printf(" blk_sz:%lld\n", myjob->blk_sz);
-        printf(" fsync:%d\n", myjob->fsync);
-        printf(" mode:%c\n",myjob->mode);
+        printf(" %d::%d: tmp_dir:%s\n",my_rank, world_rank,myjob->tmp_dir);
+        printf(" %d::%d: type:%s\n", my_rank,world_rank,myjob->type);
+        printf(" %d::%d: engine:%s\n", my_rank,world_rank,myjob->engine);
+        printf(" %d::%d: pes:%d\n",my_rank,world_rank, myjob->num_pes);
+        printf(" %d::%d: num_files:%d\n",my_rank, world_rank,myjob->num_files);
+        printf(" %d::%d: blk_sz:%lld\n",my_rank,world_rank, myjob->blk_sz);
+        printf(" %d::%d: fsync:%d\n",my_rank, world_rank,myjob->fsync);
+        printf(" %d::%d: mode:%c\n",my_rank,world_rank,myjob->mode);
         fflush(stdout);
-    }
 
 
-    //file_test(params->jobs[0]);
+    if(!strcmp(myjob->type, "metadata"))file_test(myjob);
 
     MPI_Finalize();
     exit(0);

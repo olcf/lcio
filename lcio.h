@@ -30,7 +30,12 @@
 
 #define FILE_WARN(FN, S1, S2) fprintf( \
         stderr, "%s:%d -- WARN: file size mismatch (%s -- %lld :: %ld)\n",\
-        __FILE__,__LINE__,FN, S1, S2);\
+        __FILE__,__LINE__,FN, S1, S2);
+
+#define LOG(MSG) \
+        fprintf(stdout, "%s\n", MSG);\
+        fflush(stdout);
+
 /*
  * lcio_param_t and lcio_job_t describe the global parameters
  * that are needed for the entire run and the parameters for a
@@ -40,8 +45,17 @@
  * If this is modified, need to modify [params.c]
  */
 typedef struct lcio_engine lcio_engine_t;
+/*
+ * IMPORTANT: The order here matters since this struct is
+ * compressed into an MPI datatype for broadcasting.
+ * the last three parameters (lib_name, lib_handle, ioengine)
+ * are NOT read in by main, they are there for each process to
+ * fill in as necessary. As such, the MPI Datatype for this
+ * struct only takes the first 8 fields.
+ * IF THIS IS MODIFIED, MODIFY THE DATATYPE DEFINITION
+ * main.c:[40-65]
+ */
 typedef struct lcio_job {
-    char lib_name[32];
     char tmp_dir[32];
     char type[16];
     char engine[8];
@@ -50,6 +64,8 @@ typedef struct lcio_job {
     unsigned long long blk_sz;
     int fsync;
     char mode;
+    //======Datatype ends here==============
+    char lib_name[32];
     void* lib_handle;
     lcio_engine_t* ioengine;
 

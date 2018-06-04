@@ -16,6 +16,7 @@ add_executable(lcio
         conf_parser.h
         main.c
         lcio.h
+        logging.h
         time.c
         params.c
         file_test.c)
