@@ -97,6 +97,9 @@ typedef struct lcio_engine {
 
 } lcio_engine_t;
 
+
+static char* prefix_g ="lcio_tmpf";
+
 void file_test(lcio_job_t*);
 
 lcio_param_t* fill_parameters(struct conf*);

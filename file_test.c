@@ -13,6 +13,14 @@ void print_log(double t, char* op){
     printf("operation: %s\n  elapsed time: %.2lf \n\n", op, t);
 }
 
+int lcio_filename(char* file, char* dir, int i){
+    int rank;
+    int err;
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    err = sprintf(file, "%s/%s.%d.%d", dir, prefix_g, i,rank);
+    return err;
+}
+
 void lcio_register_engine(lcio_job_t *job){
     char lib[64];
     char* error;
@@ -40,10 +48,11 @@ void lcio_create(lcio_job_t* job){
     int i;
     int* fd;
     char file[64];
-    char* prefix = "/lcio_tmpf.";
+    //char* prefix = "/lcio_tmpf.";
 
     for(i=0; i < job->num_files; ++i){
-        sprintf(file, "%s%s%d",job->tmp_dir, prefix, i);
+        lcio_filename(file, job->tmp_dir, i);
+        //sprintf(file, "%s%s%d",job->tmp_dir, prefix, i);
         fd = (int*) job->ioengine->create(file, job);
         job->ioengine->close(fd, job);
     }
@@ -54,10 +63,11 @@ void lcio_write(lcio_job_t* job){
     int i;
     char file[64];
     char buf[job->blk_sz];
-    char* prefix = "/lcio_tmpf.";
+    //char* prefix = "/lcio_tmpf.";
 
     for(i=0; i < job->num_files; ++i){
-        sprintf(file, "%s%s%d",job->tmp_dir, prefix, i);
+        lcio_filename(file,job->tmp_dir, i);
+        //sprintf(file, "%s%s%d",job->tmp_dir, prefix, i);
         fd = (int*) job->ioengine->open(file, job);
         job->ioengine->write(fd, job);
         if(job->fsync){
@@ -71,10 +81,11 @@ void lcio_write(lcio_job_t* job){
 void lcio_stat(lcio_job_t* job){
     int i;
     char file[64];
-    char* prefix = "/lcio_tmpf.";
+    //char* prefix = "/lcio_tmpf.";
 
     for(i=0; i < job->num_files; ++i){
-        sprintf(file, "%s%s%d",job->tmp_dir, prefix, i);
+        lcio_filename(file,job->tmp_dir, i);
+        //sprintf(file, "%s%s%d",job->tmp_dir, prefix, i);
         job->ioengine->stat(file, job);
     }
 }
@@ -82,10 +93,11 @@ void lcio_stat(lcio_job_t* job){
 void lcio_remove(lcio_job_t* job){
     int i;
     char file[64];
-    char* prefix = "/lcio_tmpf.";
+    //char* prefix = "/lcio_tmpf.";
 
     for(i=0; i < job->num_files; ++i){
-        sprintf(file, "%s%s%d",job->tmp_dir, prefix, i);
+        lcio_filename(file, job->tmp_dir, i);
+        //sprintf(file, "%s%s%d",job->tmp_dir, prefix, i);
         job->ioengine->remove(file, job);
     }
     job->ioengine->remove(job->tmp_dir, job);

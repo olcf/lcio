@@ -13,10 +13,7 @@
  */
 
 double get_time(void){
-    struct timeval tv;
-    gettimeofday(&tv, NULL);
-
-    return (double)(tv.tv_sec * 1000000) + (double)(tv.tv_usec);
+    return MPI_Wtime();
 }
 
 double elapsed_time(double t1, double t2){
