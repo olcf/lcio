@@ -66,7 +66,7 @@ void* posix_stat(char* fn, lcio_job_t* job){
 
     err = malloc(sizeof(int));
     *err = stat(fn, &statbuf);
-    if(statbuf.st_size != job->blk_sz){
+    if(statbuf.st_size != job->blk_sz && job->mode != 'S'){
         FILE_WARN(fn, statbuf.st_size , job->blk_sz);
     }
     return (void*)err;

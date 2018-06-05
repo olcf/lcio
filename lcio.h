@@ -52,7 +52,7 @@ typedef struct lcio_engine lcio_engine_t;
  * are NOT read in by main, they are there for each process to
  * fill in as necessary. As such, the MPI Datatype for this
  * struct only takes the first 8 fields.
- * IF THIS IS MODIFIED, MODIFY THE DATATYPE DEFINITION
+ * IF THIS IS MODIFIED, MODIFY THE DATATYPE DEFINITION AT
  * main.c:[40-65]
  */
 typedef struct lcio_job {
@@ -100,7 +100,8 @@ typedef struct lcio_engine {
 
 static char* prefix_g ="lcio_tmpf";
 
-void file_test(lcio_job_t*);
+void file_complete_test(lcio_job_t*);
+void file_metadata_test(lcio_job_t*);
 
 lcio_param_t* fill_parameters(struct conf*);
 void print_params(lcio_param_t*);

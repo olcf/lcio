@@ -126,8 +126,8 @@ int main(int argc, char** argv) {
         fflush(stdout);
 
 
-    if(!strcmp(myjob->type, "metadata"))file_test(myjob);
-
+    if(!strcmp(myjob->type, "complete"))file_complete_test(myjob);
+    if(!strcmp(myjob->type, "metadata")) file_metadata_test(myjob);
     MPI_Finalize();
     exit(0);
 }
