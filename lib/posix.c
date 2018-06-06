@@ -14,18 +14,22 @@
 
 void* posix_create(char* fn, lcio_job_t* job){
     int* fd;
-    //int flags = O_CREAT | O_RDWR;
+    unsigned int flags = O_CREAT | O_RDWR;
+    mode_t mode = S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH;
     fd = malloc(sizeof(int));
-    *fd = creat(fn, 0644);
+    *fd = open(fn, flags, mode);
+
     return (void*)fd;
 }
 
 void* posix_open(char* fn, lcio_job_t* job){
     int* fd;
-    int flags = O_RDWR;
+    int flags = O_CREAT | O_RDWR | O_APPEND;
+    mode_t mode = S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH;
+
     fd = malloc(sizeof(int));
 
-    *fd = open(fn, flags, 0644);
+    *fd = open(fn, flags, mode);
     return (void*)fd;
 }
 
@@ -37,6 +41,7 @@ void posix_close(int* fdes, lcio_job_t* job){
 
 void posix_delete(char* fn, lcio_job_t* job){
     unlink(fn);
+
 }
 
 void* posix_write(const int* fdes, lcio_job_t* job){
@@ -66,9 +71,12 @@ void* posix_stat(char* fn, lcio_job_t* job){
 
     err = malloc(sizeof(int));
     *err = stat(fn, &statbuf);
-    if(statbuf.st_size != job->blk_sz && job->mode != 'S'){
+    if(statbuf.st_size != job->blk_sz && job->mode == 'U'){
         FILE_WARN(fn, statbuf.st_size , job->blk_sz);
     }
+    //if(statbuf.st_size != (job->job->blk_sz && job->mode == 'S'){
+    //    FILE_WARN(fn, )
+    //}
     return (void*)err;
 }
 

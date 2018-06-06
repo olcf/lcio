@@ -33,7 +33,12 @@ int lcio_filename(char* file, lcio_job_t* job, int i){
     return -1;
 }
 
-int lcio_directory_name_unique(char* file, char* dir, int i, int depth){
+int lcio_directory_tree(char* dir, int i, int cur_depth, lcio_job_t* job){
+    /*
+     * create a directory tree with 'mean' number of directories per
+     * level
+     */
+    return -1;
 
 }
 
@@ -64,12 +69,15 @@ void lcio_create(lcio_job_t* job){
     int i;
     int* fd;
     char file[64];
-    //char* prefix = "/lcio_tmpf.";
+
 
     for(i=0; i < job->num_files; ++i){
         lcio_filename(file, job, i);
         //sprintf(file, "%s%s%d",job->tmp_dir, prefix, i);
         fd = (int*) job->ioengine->create(file, job);
+        if(job->fsync){
+            job->ioengine->fsync(fd, job);
+        }
         job->ioengine->close(fd, job);
     }
 }
@@ -78,8 +86,6 @@ void lcio_write(lcio_job_t* job){
     int* fd;
     int i;
     char file[64];
-    char buf[job->blk_sz];
-    //char* prefix = "/lcio_tmpf.";
 
     for(i=0; i < job->num_files; ++i){
         lcio_filename(file, job, i);
@@ -97,11 +103,10 @@ void lcio_write(lcio_job_t* job){
 void lcio_stat(lcio_job_t* job){
     int i;
     char file[64];
-    //char* prefix = "/lcio_tmpf.";
+
 
     for(i=0; i < job->num_files; ++i){
         lcio_filename(file, job, i);
-        //sprintf(file, "%s%s%d",job->tmp_dir, prefix, i);
         job->ioengine->stat(file, job);
     }
 }
@@ -109,7 +114,7 @@ void lcio_stat(lcio_job_t* job){
 void lcio_remove(lcio_job_t* job){
     int i;
     char file[64];
-    //char* prefix = "/lcio_tmpf.";
+
 
     for(i=0; i < job->num_files; ++i){
         lcio_filename(file, job, i);
@@ -158,7 +163,7 @@ void lcio_teardown(lcio_job_t* job){
  *
  */
 
-void file_complete_test(lcio_job_t* job){
+void file_complete_test(lcio_job_t* job, MPI_Comm comm){
 
     lcio_setup(job);
     double times[16];
@@ -167,14 +172,14 @@ void file_complete_test(lcio_job_t* job){
     int i = 0;
     int j;
 
-    /*
+
     t1 = get_time();
     lcio_create(job);
     t2 = get_time();
     times[i] = elapsed_time(t2,t1);
     print_log(times[i], "create");
     i+=1;
-*/
+
     t1 = get_time();
     lcio_write(job);
     t2 = get_time();
@@ -202,7 +207,7 @@ void file_complete_test(lcio_job_t* job){
 
 }
 
-void file_metadata_test(lcio_job_t* job){
+void file_metadata_test(lcio_job_t* job, MPI_Comm comm){
 
     lcio_setup(job);
     double times[16];
@@ -226,13 +231,13 @@ void file_metadata_test(lcio_job_t* job){
     i+=1;
 
     t1 = get_time();
-    lcio_remove(job);
+    //lcio_remove(job);
     t2 = get_time();
     times[i] = elapsed_time(t2,t1);
     print_log(times[i], "remove ");
     i+=1;
 
-    lcio_teardown(job);
+    //lcio_teardown(job);
     for(j=0; j < i;++j) final += times[j];
     print_log(final, "final");
 

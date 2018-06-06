@@ -24,10 +24,12 @@ int main(int argc, char** argv) {
 
     MPI_Comm_dup(MPI_COMM_WORLD, &world_comm);
 
-    MPI_Aint cextent, iextent, ullextent, clb, ilb, ulllb;
+    MPI_Aint cextent, iextent, ullextent, fextent, flb, clb, ilb, ulllb;
     MPI_Type_get_extent(MPI_CHAR, &clb, &cextent);
     MPI_Type_get_extent(MPI_INT, &ilb, &iextent);
     MPI_Type_get_extent(MPI_UNSIGNED_LONG_LONG, &ulllb, &ullextent);
+    MPI_Type_get_extent(MPI_FLOAT, &flb, &fextent);
+
 
     MPI_Comm_size(world_comm, &world_sz);
     MPI_Comm_rank(world_comm, &world_rank);
@@ -38,13 +40,14 @@ int main(int argc, char** argv) {
      * and do not need to be broadcast.
      */
     MPI_Datatype MPI_LCIO_JOB;
-    const int count = 8;
-    int blens[count] = {32,16,8,1,1,1,1,1};
+    const int count = 11;
+    int blens[count] = {32,16,8,1,1,1,1,1,1,1,1};
     MPI_Datatype array_of_types[count] =
             {MPI_CHAR, MPI_CHAR, MPI_CHAR,
              MPI_INT, MPI_INT,
              MPI_UNSIGNED_LONG_LONG,
-             MPI_INT, MPI_CHAR};
+             MPI_INT,MPI_INT, MPI_FLOAT, MPI_FLOAT,
+             MPI_CHAR};
     MPI_Aint disps[count];
 
     /* displacements in struct */
@@ -55,8 +58,10 @@ int main(int argc, char** argv) {
     disps[4] = disps[3] + iextent; //num_files
     disps[5] = disps[4] + iextent; //blk_sz
     disps[6] = disps[5] + ullextent; //fsync
-    disps[7] = disps[6] + iextent; //mode
-
+    disps[7] = disps[6] + iextent; //depth
+    disps[8] = disps[7] + iextent; //mean
+    disps[9] = disps[8] + fextent; //stddev
+    disps[10] = disps[9] + fextent; //mode
 
     /*
      * Create datatype for lcio_job_t
@@ -113,21 +118,24 @@ int main(int argc, char** argv) {
 
     myjob = params->jobs[color];
 
-        printf("recved\n");
-        printf("==============\n");
-        printf(" %d::%d: tmp_dir:%s\n",my_rank, world_rank,myjob->tmp_dir);
-        printf(" %d::%d: type:%s\n", my_rank,world_rank,myjob->type);
-        printf(" %d::%d: engine:%s\n", my_rank,world_rank,myjob->engine);
-        printf(" %d::%d: pes:%d\n",my_rank,world_rank, myjob->num_pes);
-        printf(" %d::%d: num_files:%d\n",my_rank, world_rank,myjob->num_files);
-        printf(" %d::%d: blk_sz:%lld\n",my_rank,world_rank, myjob->blk_sz);
-        printf(" %d::%d: fsync:%d\n",my_rank, world_rank,myjob->fsync);
-        printf(" %d::%d: mode:%c\n",my_rank,world_rank,myjob->mode);
-        fflush(stdout);
+    printf("recved\n");
+    printf("==============\n");
+    printf(" %d::%d: tmp_dir:%s\n",my_rank, world_rank,myjob->tmp_dir);
+    printf(" %d::%d: type:%s\n", my_rank,world_rank,myjob->type);
+    printf(" %d::%d: engine:%s\n", my_rank,world_rank,myjob->engine);
+    printf(" %d::%d: pes:%d\n",my_rank,world_rank, myjob->num_pes);
+    printf(" %d::%d: num_files:%d\n",my_rank, world_rank,myjob->num_files);
+    printf(" %d::%d: blk_sz:%lld\n",my_rank,world_rank, myjob->blk_sz);
+    printf(" %d::%d: fsync:%d\n",my_rank, world_rank,myjob->fsync);
+    printf(" %d::%d: mode:%c\n",my_rank,world_rank,myjob->mode);
+    printf(" %d::%d: mean:%f\n", my_rank, world_rank,myjob->mean);
+    printf(" %d::%d: stdev:%f\n", my_rank, world_rank,myjob->stdev);
+    printf(" %d::%d: depth:%d\n", my_rank, world_rank,myjob->depth);
+    fflush(stdout);
 
 
-    if(!strcmp(myjob->type, "complete"))file_complete_test(myjob);
-    if(!strcmp(myjob->type, "metadata")) file_metadata_test(myjob);
+    if(!strcmp(myjob->type, "complete"))file_complete_test(myjob, group_comm);
+    if(!strcmp(myjob->type, "metadata")) file_metadata_test(myjob, group_comm);
     MPI_Finalize();
     exit(0);
 }

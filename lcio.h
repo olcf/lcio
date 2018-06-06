@@ -29,7 +29,8 @@
 
 
 #define FILE_WARN(FN, S1, S2) fprintf( \
-        stderr, "%s:%d -- WARN: file size mismatch (%s -- %lld :: %ld)\n",\
+        stderr, "%s:%d -- WARN: file size mismatch " \
+                "(%s -- %lld :: %ld)\n",\
         __FILE__,__LINE__,FN, S1, S2);
 
 #define LOG(MSG) \
@@ -63,6 +64,9 @@ typedef struct lcio_job {
     int num_files;
     unsigned long long blk_sz;
     int fsync;
+    int depth;
+    float mean;
+    float stdev;
     char mode;
     //======Datatype ends here==============
     char lib_name[32];
@@ -100,8 +104,8 @@ typedef struct lcio_engine {
 
 static char* prefix_g ="lcio_tmpf";
 
-void file_complete_test(lcio_job_t*);
-void file_metadata_test(lcio_job_t*);
+void file_complete_test(lcio_job_t*, MPI_Comm);
+void file_metadata_test(lcio_job_t*, MPI_Comm);
 
 lcio_param_t* fill_parameters(struct conf*);
 void print_params(lcio_param_t*);
@@ -109,5 +113,6 @@ void print_params(lcio_param_t*);
 double get_time(void);
 double elapsed_time(double, double);
 
+float gen_rand_normal(float mean, float stddev, long seed);
 
 #endif //LCIO_LCIO_H

@@ -55,12 +55,13 @@ lcio_param_t* fill_parameters(struct conf *cfg){
     char buf[8];
     char block_buf[128];
     int i;
+    char* end;
 
     params = malloc(sizeof(lcio_param_t));
 
     if(NULL == (sec = get_section("setup", cfg))) {ELOCAL("no [setup] section");}
-    params->num_jobs = atoi(get_attr("num_jobs", sec));
-    params->num_pes = atoi(get_attr("mpi_num_pes", sec));
+    params->num_jobs = (int)strtol(get_attr("num_jobs", sec), &end, 10);
+    params->num_pes = (int)strtol(get_attr("mpi_num_pes", sec), &end, 10);
 
     params->jobs = malloc(sizeof(lcio_job_t*) * params->num_jobs);
 
@@ -71,14 +72,18 @@ lcio_param_t* fill_parameters(struct conf *cfg){
         sprintf(buf,"job%d", i);
         sec = get_section(buf, cfg);
         params->jobs[i] = malloc(sizeof(lcio_job_t));
-        params->jobs[i]->num_pes = atoi(get_attr("mpi_num_pes", sec));
+        params->jobs[i]->num_pes = (int)strtol(get_attr("mpi_num_pes", sec), &end, 10);
         strcpy(params->jobs[i]->engine, get_attr("engine", sec));
         strcpy(params->jobs[i]->type, get_attr("type", sec));
         sscanf(get_attr("mode", sec), "%c", &(params->jobs[i]->mode));
-        params->jobs[i]->num_files = atoi(get_attr("num_files", sec));
+        params->jobs[i]->num_files = (int)strtol(get_attr("num_files", sec), &end, 10);
         strcpy(params->jobs[i]->tmp_dir, get_attr("tmp_dir", sec));
-        params->jobs[i]->fsync = atoi(get_attr("fsync", sec));
+        params->jobs[i]->fsync = (int)strtol(get_attr("fsync", sec), &end, 10);
         get_buf_sz(get_attr("block_size", sec), params->jobs[i]);
+        params->jobs[i]->depth = (int)strtol(get_attr("depth", sec), &end, 10);
+        params->jobs[i]->mean = strtof(get_attr("mean", sec), &end);
+        params->jobs[i]->stdev = strtof(get_attr("stdev", sec), &end);
+
     }
     return params;
 }
