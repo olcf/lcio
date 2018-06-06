@@ -117,6 +117,8 @@ int main(int argc, char** argv) {
     MPI_Comm_rank(group_comm, &my_rank);
 
     myjob = params->jobs[color];
+    myjob->group_comm = group_comm;
+    myjob->num_files_per_proc = myjob->num_files / grp_sz;
 
     printf("recved\n");
     printf("==============\n");
@@ -134,8 +136,8 @@ int main(int argc, char** argv) {
     fflush(stdout);
 
 
-    if(!strcmp(myjob->type, "complete"))file_complete_test(myjob, group_comm);
-    if(!strcmp(myjob->type, "metadata")) file_metadata_test(myjob, group_comm);
+    if(!strcmp(myjob->type, "complete"))file_complete_test(myjob);
+    if(!strcmp(myjob->type, "metadata"))file_metadata_test(myjob);
     MPI_Finalize();
     exit(0);
 }

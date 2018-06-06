@@ -12,6 +12,7 @@
 #include <errno.h>
 #include <mpi.h>
 #include <string.h>
+#include <lcio_math.h>
 
 #include "conf_parser.h"
 
@@ -25,7 +26,7 @@
         fprintf(stderr, "%s:%d -- LOCAL ERROR:%s\n",            \
                 __FILE__, __LINE__, MSG);                       \
         exit(1);                                                \
-    } while(0)
+    } while(0);
 
 
 #define FILE_WARN(FN, S1, S2) fprintf( \
@@ -69,6 +70,8 @@ typedef struct lcio_job {
     float stdev;
     char mode;
     //======Datatype ends here==============
+    MPI_Comm group_comm;
+    int num_files_per_proc;
     char lib_name[32];
     void* lib_handle;
     lcio_engine_t* ioengine;
@@ -104,8 +107,8 @@ typedef struct lcio_engine {
 
 static char* prefix_g ="lcio_tmpf";
 
-void file_complete_test(lcio_job_t*, MPI_Comm);
-void file_metadata_test(lcio_job_t*, MPI_Comm);
+void file_complete_test(lcio_job_t*);
+void file_metadata_test(lcio_job_t*);
 
 lcio_param_t* fill_parameters(struct conf*);
 void print_params(lcio_param_t*);
@@ -113,6 +116,6 @@ void print_params(lcio_param_t*);
 double get_time(void);
 double elapsed_time(double, double);
 
-float gen_rand_normal(float mean, float stddev, long seed);
+
 
 #endif //LCIO_LCIO_H

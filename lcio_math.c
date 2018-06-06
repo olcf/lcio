@@ -3,7 +3,8 @@
 //
 
 #include "lcio.h"
-#include <math.h>
+#include "lcio_math.h"
+
 
 float gen_rand_normal(float mean, float stddev, long seed) {
     static double n2 = 0.0;
@@ -20,6 +21,7 @@ float gen_rand_normal(float mean, float stddev, long seed) {
             r = x*x + y*y;
         }
         while (r == 0.0 || r > 1.0);
+        
         {
             double d = sqrt(-2.0*log(r)/r);
             double n1 = x*d;

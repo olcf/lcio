@@ -9,8 +9,8 @@
 #include <dlfcn.h>
 #include <sys/stat.h>
 
-void print_log(double t, char* op){
-    printf("operation: %s\n  elapsed time: %.2lf \n\n", op, t);
+void print_log(double t, char* op, int r){
+    printf("%d: operation: %s\n  elapsed time: %.6lf \n\n", r,op, t);
 }
 
 int lcio_filename_unique(char *file, char *dir, int i){
@@ -71,9 +71,9 @@ void lcio_create(lcio_job_t* job){
     char file[64];
 
 
-    for(i=0; i < job->num_files; ++i){
+    for(i=0; i < job->num_files_per_proc; ++i){
         lcio_filename(file, job, i);
-        //sprintf(file, "%s%s%d",job->tmp_dir, prefix, i);
+
         fd = (int*) job->ioengine->create(file, job);
         if(job->fsync){
             job->ioengine->fsync(fd, job);
@@ -87,9 +87,9 @@ void lcio_write(lcio_job_t* job){
     int i;
     char file[64];
 
-    for(i=0; i < job->num_files; ++i){
+    for(i=0; i < job->num_files_per_proc; ++i){
         lcio_filename(file, job, i);
-        //sprintf(file, "%s%s%d",job->tmp_dir, prefix, i);
+
         fd = (int*) job->ioengine->open(file, job);
         job->ioengine->write(fd, job);
         if(job->fsync){
@@ -104,8 +104,7 @@ void lcio_stat(lcio_job_t* job){
     int i;
     char file[64];
 
-
-    for(i=0; i < job->num_files; ++i){
+    for(i=0; i < job->num_files_per_proc; ++i){
         lcio_filename(file, job, i);
         job->ioengine->stat(file, job);
     }
@@ -116,9 +115,8 @@ void lcio_remove(lcio_job_t* job){
     char file[64];
 
 
-    for(i=0; i < job->num_files; ++i){
+    for(i=0; i < job->num_files_per_proc; ++i){
         lcio_filename(file, job, i);
-        //sprintf(file, "%s%s%d",job->tmp_dir, prefix, i);
         job->ioengine->remove(file, job);
     }
     job->ioengine->remove(job->tmp_dir, job);
@@ -163,7 +161,7 @@ void lcio_teardown(lcio_job_t* job){
  *
  */
 
-void file_complete_test(lcio_job_t* job, MPI_Comm comm){
+void file_complete_test(lcio_job_t* job){
 
     lcio_setup(job);
     double times[16];
@@ -171,43 +169,45 @@ void file_complete_test(lcio_job_t* job, MPI_Comm comm){
     double final = 0.0;
     int i = 0;
     int j;
+    int rank;
 
+    MPI_Comm_rank(job->group_comm, &rank);
 
     t1 = get_time();
     lcio_create(job);
     t2 = get_time();
     times[i] = elapsed_time(t2,t1);
-    print_log(times[i], "create");
+    print_log(times[i], "create", rank);
     i+=1;
 
     t1 = get_time();
     lcio_write(job);
     t2 = get_time();
     times[i] = elapsed_time(t2,t1);
-    print_log(times[i], "write");
+    print_log(times[i], "write", rank);
     i+=1;
 
     t1 = get_time();
     lcio_stat(job);
     t2 = get_time();
     times[i] = elapsed_time(t2,t1);
-    print_log(times[i], "stat ");
+    print_log(times[i], "stat ", rank);
     i+=1;
 
     t1 = get_time();
     lcio_remove(job);
     t2 = get_time();
     times[i] = elapsed_time(t2,t1);
-    print_log(times[i], "remove ");
+    print_log(times[i], "remove ",rank);
     i+=1;
 
     lcio_teardown(job);
     for(j=0; j < i;++j) final += times[j];
-    print_log(final, "final");
+    print_log(final, "final", rank);
 
 }
 
-void file_metadata_test(lcio_job_t* job, MPI_Comm comm){
+void file_metadata_test(lcio_job_t* job){
 
     lcio_setup(job);
     double times[16];
@@ -215,30 +215,33 @@ void file_metadata_test(lcio_job_t* job, MPI_Comm comm){
     double final = 0.0;
     int i = 0;
     int j;
+    int rank;
+
+    MPI_Comm_rank(job->group_comm, &rank);
 
     t1 = get_time();
     lcio_write(job);
     t2 = get_time();
     times[i] = elapsed_time(t2,t1);
-    print_log(times[i], "write");
+    print_log(times[i], "write", rank);
     i+=1;
 
     t1 = get_time();
     lcio_stat(job);
     t2 = get_time();
     times[i] = elapsed_time(t2,t1);
-    print_log(times[i], "stat ");
+    print_log(times[i], "stat ", rank);
     i+=1;
 
     t1 = get_time();
     //lcio_remove(job);
     t2 = get_time();
     times[i] = elapsed_time(t2,t1);
-    print_log(times[i], "remove ");
+    print_log(times[i], "remove ", rank);
     i+=1;
 
     //lcio_teardown(job);
     for(j=0; j < i;++j) final += times[j];
-    print_log(final, "final");
+    print_log(final, "final", rank);
 
 }
