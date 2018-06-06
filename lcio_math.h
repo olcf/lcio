@@ -12,6 +12,6 @@ typedef struct lcio_results {
 double max_time;
 double min_time;
 double avg_time;
-double 
+double bandwidth;
 } lcio_results_t;
 #endif //LCIO_LCIO_MATH_H
