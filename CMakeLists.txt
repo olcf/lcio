@@ -19,7 +19,7 @@ add_executable(lcio
         logging.h
         time.c
         params.c
-        file_test.c lcio_math.c lcio_math.h)
+        file_test.c lcio_math.c lcio_math.h exec_wrapper.c)
 
 target_link_libraries(lcio PRIVATE ${MPI_C_LIBRARIES})
 target_link_libraries(lcio PRIVATE m)

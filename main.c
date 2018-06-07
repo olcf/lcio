@@ -35,9 +35,9 @@ int main(int argc, char** argv) {
     MPI_Comm_rank(world_comm, &world_rank);
 
     /*
-     * NOTE: this does not pack the lib_handle and ioengine
-     * variables in lcio_job_t. These two are process specific,
-     * and do not need to be broadcast.
+     * NOTE: this does not pack the trailing
+     * variables in lcio_job_t. Those are process specific,
+     * and do not need to be broadcast. See lcio.h:[60-77]
      */
     MPI_Datatype MPI_LCIO_JOB;
     const int count = 11;
@@ -92,9 +92,10 @@ int main(int argc, char** argv) {
     /*
      * sorta nasty but other, more slick methods kept giving
      * me segfaults. Likely due to how the MPI_datatype isnt
-     * a full struct the
+     * a full struct.
      */
     MPI_Bcast(&(params->num_jobs), 1, MPI_INT, 0, world_comm);
+    MPI_Bcast(&(params->num_runs), 1, MPI_INT, 0, world_comm);
 
     if(world_rank != 0){
         params->jobs = malloc(sizeof(lcio_job_t) * params->num_jobs);
@@ -110,6 +111,11 @@ int main(int argc, char** argv) {
     }
     MPI_Barrier(world_comm);
 
+    /*
+     * This will change for future versions. Currently, processes
+     * are split (mostly) evenly between jobs. Will change so that
+     * each job will get a configurable amount of processes.
+     */
     color = world_rank % params->num_jobs;
     MPI_Comm_split(world_comm, color, world_rank, &group_comm);
 
@@ -119,7 +125,9 @@ int main(int argc, char** argv) {
     myjob = params->jobs[color];
     myjob->group_comm = group_comm;
     myjob->num_files_per_proc = myjob->num_files / grp_sz;
+    myjob->num_runs = params->num_runs;
 
+#if DEBUG_SET
     printf("recved\n");
     printf("==============\n");
     printf(" %d::%d: tmp_dir:%s\n",my_rank, world_rank,myjob->tmp_dir);
@@ -134,10 +142,9 @@ int main(int argc, char** argv) {
     printf(" %d::%d: stdev:%f\n", my_rank, world_rank,myjob->stdev);
     printf(" %d::%d: depth:%d\n", my_rank, world_rank,myjob->depth);
     fflush(stdout);
+#endif
 
-
-    if(!strcmp(myjob->type, "complete"))file_complete_test(myjob);
-    if(!strcmp(myjob->type, "metadata"))file_metadata_test(myjob);
+    execute_job(myjob);
     MPI_Finalize();
     exit(0);
 }

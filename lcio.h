@@ -12,7 +12,7 @@
 #include <errno.h>
 #include <mpi.h>
 #include <string.h>
-#include <lcio_math.h>
+#include "lcio_math.h"
 
 #include "conf_parser.h"
 
@@ -69,11 +69,14 @@ typedef struct lcio_job {
     float mean;
     float stdev;
     char mode;
-    //======Datatype ends here==============
+    //======Datatype ends here=============
+    int num_runs;
     MPI_Comm group_comm;
     int num_files_per_proc;
     char lib_name[32];
     void* lib_handle;
+    lcio_results_t* job_timings;
+    lcio_results_t* job_results;
     lcio_engine_t* ioengine;
 
 } lcio_job_t;
@@ -81,6 +84,7 @@ typedef struct lcio_job {
 typedef struct lcio_param {
     int num_pes;
     int num_jobs;
+    int num_runs;
     lcio_job_t** jobs;
 } lcio_param_t;
 
@@ -107,15 +111,15 @@ typedef struct lcio_engine {
 
 static char* prefix_g ="lcio_tmpf";
 
-void file_complete_test(lcio_job_t*);
-void file_metadata_test(lcio_job_t*);
+void file_test_full(lcio_job_t *);
+void file_test_light(lcio_job_t *);
 
 lcio_param_t* fill_parameters(struct conf*);
 void print_params(lcio_param_t*);
 
 double get_time(void);
 double elapsed_time(double, double);
-
+void execute_job(lcio_job_t* job);
 
 
 #endif //LCIO_LCIO_H

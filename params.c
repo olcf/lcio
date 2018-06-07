@@ -62,6 +62,7 @@ lcio_param_t* fill_parameters(struct conf *cfg){
     if(NULL == (sec = get_section("setup", cfg))) {ELOCAL("no [setup] section");}
     params->num_jobs = (int)strtol(get_attr("num_jobs", sec), &end, 10);
     params->num_pes = (int)strtol(get_attr("mpi_num_pes", sec), &end, 10);
+    params->num_runs = (int)strtol(get_attr("num_runs", sec), &end, 10);
 
     params->jobs = malloc(sizeof(lcio_job_t*) * params->num_jobs);
 
