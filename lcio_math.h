@@ -6,14 +6,25 @@
 #define LCIO_LCIO_MATH_H
 
 #include <math.h>
+#include "lcio.h"
+
+#define TIME_ARR_SZ 8
+
 float gen_rand_normal(float mean, float stddev, long seed);
 
 typedef struct lcio_results {
-    double max_time;
-    double min_time;
-    double avg_time;
-    double stddev;
+    double* max_times;
+    double* min_times;
+    double* avg_times;
+    double* stddevs;
     double** raw_times;
 
-} lcio_metadata_results_t;
+} lcio_results_t;
+
+
+
+void process_times(lcio_results_t*, int);
+
+
 #endif //LCIO_LCIO_MATH_H
+

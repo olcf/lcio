@@ -164,47 +164,50 @@ void lcio_teardown(lcio_job_t* job){
 void file_test_full(lcio_job_t *job){
 
     lcio_setup(job);
-    double times[16];
+    double* times;
     double t1, t2;
-    double final = 0.0;
-    int i = 0;
-    int j;
+    int iter;
     int rank;
 
     MPI_Comm_rank(job->group_comm, &rank);
 
-    t1 = get_time();
-    lcio_create(job);
-    t2 = get_time();
-    times[i] = elapsed_time(t2,t1);
-    //print_log(times[i], "create", rank);
-    i+=1;
+    for(iter=0; iter < job->num_runs; iter++) {
+        // 0 out the array
+        times = malloc(sizeof(double) * TIME_ARR_SZ);
+        memset(times, 0, sizeof(double) * TIME_ARR_SZ);
+        t1 = get_time();
+        lcio_create(job);
+        t2 = get_time();
+        times[0] = elapsed_time(t2, t1);
+        //print_log(times[i], "create", rank);
 
-    t1 = get_time();
-    lcio_write(job);
-    t2 = get_time();
-    times[i] = elapsed_time(t2,t1);
-    //print_log(times[i], "write", rank);
-    i+=1;
 
-    t1 = get_time();
-    lcio_stat(job);
-    t2 = get_time();
-    times[i] = elapsed_time(t2,t1);
-    //print_log(times[i], "stat ", rank);
-    i+=1;
+        t1 = get_time();
+        lcio_write(job);
+        t2 = get_time();
+        times[1] = elapsed_time(t2, t1);
+        //print_log(times[i], "write", rank);
 
-    /*
-    t1 = get_time();
-    lcio_remove(job);
-    t2 = get_time();
-    times[i] = elapsed_time(t2,t1);
-    print_log(times[i], "remove ",rank);
-    i+=1;
-     */
-    lcio_teardown(job);
-    for(j=0; j < i;++j) final += times[j];
-    print_log(final, "final", rank);
+
+        t1 = get_time();
+        lcio_stat(job);
+        t2 = get_time();
+        times[2] = elapsed_time(t2, t1);
+        //print_log(times[i], "stat ", rank);
+
+
+        /*
+        t1 = get_time();
+        lcio_remove(job);
+        t2 = get_time();
+        times[i] = elapsed_time(t2,t1);
+        print_log(times[i], "remove ",rank);
+        i+=1;
+         */
+        lcio_teardown(job);
+        job->job_timings->raw_times[iter] = times;
+        //print_log(final, "final", rank);
+    }
 
 }
 
@@ -213,9 +216,6 @@ void file_test_light(lcio_job_t *job){
     lcio_setup(job);
     double* times;
     double t1, t2;
-    double final = 0.0;
-    int i = 0;
-    int j;
     int rank;
     int iter = 0;
 
@@ -223,19 +223,19 @@ void file_test_light(lcio_job_t *job){
 
     for(iter=0; iter < job->num_runs; iter++) {
         // 0 out the array
-        times = malloc(sizeof(double) * 8);
-        memset(times, 0, sizeof(double) * 8);
+        times = malloc(sizeof(double) * TIME_ARR_SZ);
+        memset(times, 0, sizeof(double) * TIME_ARR_SZ);
         t1 = get_time();
-        lcio_write(job);
+        lcio_create(job);
         t2 = get_time();
-        times[i] = elapsed_time(t2, t1);
+        times[0] = elapsed_time(t2, t1);
         //print_log(times[i], "create", rank);
 
 
         t1 = get_time();
         lcio_stat(job);
         t2 = get_time();
-        times[i] = elapsed_time(t2, t1);
+        times[2] = elapsed_time(t2, t1);
         //print_log(times[i], "stat ", rank);
 
 
@@ -249,7 +249,7 @@ void file_test_light(lcio_job_t *job){
          */
         lcio_teardown(job);
 
-        job->job_timings[iter] = times;
+        job->job_timings->raw_times[iter] = times;
         //print_log(final, "final", rank);
     }
 

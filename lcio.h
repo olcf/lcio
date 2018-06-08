@@ -120,6 +120,7 @@ void print_params(lcio_param_t*);
 double get_time(void);
 double elapsed_time(double, double);
 void execute_job(lcio_job_t* job);
+void report_job_stats(lcio_job_t*);
 
 
 #endif //LCIO_LCIO_H
