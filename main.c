@@ -12,8 +12,8 @@ int main(int argc, char** argv) {
     int my_rank;
     int grp_sz;
     int world_sz;
-    int color;
-    int i;
+    int color =  -1;
+    int i, j, res;
     MPI_Comm world_comm;
     MPI_Comm group_comm;
     MPI_Group my_group;
@@ -40,13 +40,13 @@ int main(int argc, char** argv) {
      * and do not need to be broadcast. See lcio.h:[60-77]
      */
     MPI_Datatype MPI_LCIO_JOB;
-    const int count = 11;
-    int blens[count] = {32,16,8,1,1,1,1,1,1,1,1};
+    const int count = 12;
+    int blens[count] = {32,16,8,1,1,1,1,1,1,1,1,1};
     MPI_Datatype array_of_types[count] =
             {MPI_CHAR, MPI_CHAR, MPI_CHAR,
              MPI_INT, MPI_INT,
              MPI_UNSIGNED_LONG_LONG,
-             MPI_INT,MPI_INT, MPI_FLOAT, MPI_FLOAT,
+             MPI_INT, MPI_INT, MPI_INT, MPI_FLOAT, MPI_FLOAT,
              MPI_CHAR};
     MPI_Aint disps[count];
 
@@ -58,10 +58,11 @@ int main(int argc, char** argv) {
     disps[4] = disps[3] + iextent; //num_files
     disps[5] = disps[4] + iextent; //blk_sz
     disps[6] = disps[5] + ullextent; //fsync
-    disps[7] = disps[6] + iextent; //depth
-    disps[8] = disps[7] + iextent; //mean
-    disps[9] = disps[8] + fextent; //stddev
-    disps[10] = disps[9] + fextent; //mode
+    disps[7] = disps[6] + iextent; //clean
+    disps[8] = disps[7] + iextent; //depth
+    disps[9] = disps[8] + iextent; //mean
+    disps[10] = disps[9] + fextent; //stddev
+    disps[11] = disps[10] + fextent; //mode
 
     /*
      * Create datatype for lcio_job_t
@@ -82,8 +83,6 @@ int main(int argc, char** argv) {
         name = argv[1];
         cfg = parse_conf_file(name);
         params = fill_parameters(cfg);
-        //num_jobs = params->num_jobs;
-        //myjob = params->jobs[0];
         print_cfg(cfg);
     } else {
         params = malloc(sizeof(lcio_param_t));
@@ -116,7 +115,21 @@ int main(int argc, char** argv) {
      * are split (mostly) evenly between jobs. Will change so that
      * each job will get a configurable amount of processes.
      */
-    color = world_rank % params->num_jobs;
+
+    res = 0;
+    for(i = 0 ; i < params->num_jobs; i++){
+        res += params->jobs[i]->num_pes;
+        if(world_rank < res){
+            color = i;
+            break;
+        }
+    }
+    MPI_Barrier(world_comm);
+    if(color == -1) {
+        fprintf(stderr, "ERROR: color failed: rank %d\n", world_rank);
+        MPI_Abort(MPI_COMM_WORLD, 1);
+        exit(1);
+    }
     MPI_Comm_split(world_comm, color, world_rank, &group_comm);
 
     MPI_Comm_size(group_comm, &grp_sz);

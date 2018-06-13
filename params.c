@@ -84,6 +84,7 @@ lcio_param_t* fill_parameters(struct conf *cfg){
         params->jobs[i]->depth = (int)strtol(get_attr("depth", sec), &end, 10);
         params->jobs[i]->mean = strtof(get_attr("mean", sec), &end);
         params->jobs[i]->stdev = strtof(get_attr("stdev", sec), &end);
+        params->jobs[i]->clean = (int)strtol(get_attr("clean", sec), &end, 10);
 
     }
     return params;

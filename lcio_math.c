@@ -3,7 +3,6 @@
 //
 
 #include "lcio.h"
-#include "lcio_math.h"
 
 
 float gen_rand_normal(float mean, float stddev, long seed) {
@@ -103,6 +102,16 @@ double stddev(const double* arr, int num_runs){
     return sqrt(var);
 }
 
+double calc_iops(double time, lcio_job_t* job){
+
+    double iops;
+    double rate = (double)job->blk_sz / time;
+
+    iops = rate / (double)job->blk_sz;
+
+    return iops;
+}
+
 /*
  * These are indexed by the stage of the the operation
  *  0: create
@@ -136,12 +145,13 @@ void process_times(lcio_results_t* res, int num_runs){
 }
 
 void report_job_stats(lcio_job_t* job){
-    const char header[]="----------------------------------------------------------------\n"
+    const char header[]="================================================================\n"
                          "%12s    %8s   %8s    %8s      %8s\n";
     const char lines[] ="----------------------------------------------------------------\n";
     const char fmt[] =  "%12s ::  %.8lf  %.8lf  %.8lf  %.8lf\n";
 
     int i;
+    printf("\nJob: %s with %d processes\n", job->type, job->num_pes);
     printf("Results of %d runs\n\n", job->num_runs);
 
     printf(header, "", "Max", "Min", "Avg", "Stddev");
@@ -155,4 +165,5 @@ void report_job_stats(lcio_job_t* job){
         printf(lines);
     }
 
+    printf("\n\n");
 }

@@ -150,7 +150,7 @@ void lcio_setup(lcio_job_t* job){
 void lcio_teardown(lcio_job_t* job){
     job->ioengine = NULL;
     dlclose(job->lib_handle);
-    //rmdir(job->tmp_dir);
+    if(job->clean == 1) rmdir(job->tmp_dir);
 }
 
 /*

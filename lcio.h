@@ -34,9 +34,8 @@
                 "(%s -- %lld :: %ld)\n",\
         __FILE__,__LINE__,FN, S1, S2);
 
-#define LOG(MSG) \
-        fprintf(stdout, "%s\n", MSG);\
-        fflush(stdout);
+#define MPI_FAIL(MSG, RNK)\
+
 
 /*
  * lcio_param_t and lcio_job_t describe the global parameters
@@ -65,6 +64,7 @@ typedef struct lcio_job {
     int num_files;
     unsigned long long blk_sz;
     int fsync;
+    int clean;
     int depth;
     float mean;
     float stdev;
