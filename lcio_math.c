@@ -151,7 +151,7 @@ void report_job_stats(lcio_job_t* job){
     const char fmt[] =  "%12s ::  %.8lf  %.8lf  %.8lf  %.8lf\n";
 
     int i;
-    printf("\nJob: %s with %d processes\n", job->type, job->num_pes);
+    printf("\nJob: %s with %d processes of type %c\n", job->type, job->num_pes,job->mode);
     printf("Results of %d runs\n\n", job->num_runs);
 
     printf(header, "", "Max", "Min", "Avg", "Stddev");
@@ -162,8 +162,8 @@ void report_job_stats(lcio_job_t* job){
                job->job_results->min_times[i],
                job->job_results->avg_times[i],
                sqrt(job->job_results->variances[i]));
-        printf(lines);
+        //printf(lines);
     }
-
+    printf(lines);
     printf("\n\n");
 }
