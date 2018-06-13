@@ -38,6 +38,14 @@ float gen_rand_normal(float mean, float stddev, long seed) {
     }
 }
 
+void divide(double* arr, double divisor, int len){
+    int i;
+
+    for(i=0; i < len; i++){
+        arr[i] = arr[i] / divisor;
+    }
+}
+
 double max(const double* arr, int num_runs){
     double max = -1.0;
     int i;
@@ -95,6 +103,19 @@ double stddev(const double* arr, int num_runs){
     return sqrt(var);
 }
 
+/*
+ * These are indexed by the stage of the the operation
+ *  0: create
+ *  1: write
+ *  2: stat
+ *  3: read
+ *  4: remove
+ *  5: tree create
+ *  6: tree remove
+ *
+ *  so. e.g. max_times[0] is the max of the create operations
+ */
+
 void process_times(lcio_results_t* res, int num_runs){
     double* tmp_array;
     int i, j;
@@ -109,12 +130,29 @@ void process_times(lcio_results_t* res, int num_runs){
         res->max_times[j] = max(tmp_array, num_runs);
         res->min_times[j] = min(tmp_array, num_runs);
         res->avg_times[j] = avg(tmp_array, num_runs);
-        res->stddevs[j] = stddev(tmp_array,num_runs);
-
+        res->variances[j] = variance(tmp_array,num_runs);
     }
 
 }
 
 void report_job_stats(lcio_job_t* job){
+    const char header[]="----------------------------------------------------------------\n"
+                         "%12s    %8s   %8s    %8s      %8s\n";
+    const char lines[] ="----------------------------------------------------------------\n";
+    const char fmt[] =  "%12s ::  %.8lf  %.8lf  %.8lf  %.8lf\n";
+
+    int i;
+    printf("Results of %d runs\n\n", job->num_runs);
+
+    printf(header, "", "Max", "Min", "Avg", "Stddev");
+    printf(lines);
+    for (i = 0; i < TIME_ARR_SZ; i ++){
+        printf(fmt, g_op_indicies[i],
+               job->job_results->max_times[i],
+               job->job_results->min_times[i],
+               job->job_results->avg_times[i],
+               sqrt(job->job_results->variances[i]));
+        printf(lines);
+    }
 
 }

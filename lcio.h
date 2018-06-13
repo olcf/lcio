@@ -97,14 +97,14 @@ typedef struct lcio_param {
  */
 typedef struct lcio_engine {
     char *name;
-    void *(*create)(char*, lcio_job_t*);
-    void *(*open)(char*, lcio_job_t*);
-    void (*close)(int*, lcio_job_t*);
-    void (*remove)(char*, lcio_job_t*);
-    void *(*write)(const int*, lcio_job_t*);
-    void *(*read)(const int*, lcio_job_t*);
-    void *(*stat)(char*, lcio_job_t*);
-    void (*fsync)(const int*, lcio_job_t*);
+    void* (*create)(char*, lcio_job_t*);
+    void* (*open)(char*, lcio_job_t*);
+    void  (*close)(int*, lcio_job_t*);
+    void  (*remove)(char*, lcio_job_t*);
+    void* (*write)(const int*, lcio_job_t*);
+    void* (*read)(const int*, lcio_job_t*);
+    void* (*stat)(char*, lcio_job_t*);
+    void  (*fsync)(const int*, lcio_job_t*);
 
 } lcio_engine_t;
 

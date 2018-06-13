@@ -14,7 +14,7 @@
 
 void* posix_create(char* fn, lcio_job_t* job){
     int* fd;
-    unsigned int flags = O_CREAT | O_RDWR;
+    unsigned int flags = O_CREAT | O_RDWR | O_TRUNC;
     mode_t mode = S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH;
     fd = malloc(sizeof(int));
     *fd = open(fn, flags, mode);
@@ -24,7 +24,7 @@ void* posix_create(char* fn, lcio_job_t* job){
 
 void* posix_open(char* fn, lcio_job_t* job){
     int* fd;
-    int flags = O_CREAT | O_RDWR | O_APPEND;
+    int flags = O_CREAT | O_RDWR | O_TRUNC;
     mode_t mode = S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH;
 
     fd = malloc(sizeof(int));

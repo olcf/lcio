@@ -50,7 +50,7 @@ void lcio_register_engine(lcio_job_t *job){
 
     sprintf(lib, "lib%s.so", job->engine);
     strcpy(job->lib_name, lib);
-    handle = dlopen(lib, RTLD_LAZY);
+    handle = dlopen(lib, RTLD_NOW);
     if(!handle){
         fputs(dlerror(), stderr);
         exit(1);
@@ -87,7 +87,7 @@ void lcio_write(lcio_job_t* job){
     int i;
     char file[64];
 
-    for(i=0; i < job->num_files_per_proc; ++i){
+    for(i=0; i < job->num_files_per_proc; i++){
         lcio_filename(file, job, i);
 
         fd = (int*) job->ioengine->open(file, job);
@@ -175,10 +175,10 @@ void file_test_full(lcio_job_t *job){
         // 0 out the array
         times = malloc(sizeof(double) * TIME_ARR_SZ);
         memset(times, 0, sizeof(double) * TIME_ARR_SZ);
-        t1 = get_time();
-        lcio_create(job);
-        t2 = get_time();
-        times[0] = elapsed_time(t2, t1);
+        //t1 = get_time();
+        //lcio_create(job);
+        //t2 = get_time();
+        //times[0] = elapsed_time(t2, t1);
         //print_log(times[i], "create", rank);
 
 
@@ -204,11 +204,11 @@ void file_test_full(lcio_job_t *job){
         print_log(times[i], "remove ",rank);
         i+=1;
          */
-        lcio_teardown(job);
         job->job_timings->raw_times[iter] = times;
         //print_log(final, "final", rank);
     }
 
+    lcio_teardown(job);
 }
 
 void file_test_light(lcio_job_t *job){
@@ -247,10 +247,11 @@ void file_test_light(lcio_job_t *job){
         print_log(times[i], "remove ", rank);
         i+=1;
          */
-        lcio_teardown(job);
+
 
         job->job_timings->raw_times[iter] = times;
         //print_log(final, "final", rank);
     }
+    lcio_teardown(job);
 
 }
