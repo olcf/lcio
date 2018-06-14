@@ -13,6 +13,9 @@ void execute_job(lcio_job_t* job){
     MPI_Comm_rank(job->group_comm, &rank);
     MPI_Comm_size(job->group_comm, &group_sz);
 
+    MPI_Info_create(&(job->info));
+    job->buffer = malloc(sizeof(char) * job->blk_sz);
+
     /*
      * IOPS will be back calculated from the timings
      */

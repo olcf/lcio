@@ -71,7 +71,9 @@ typedef struct lcio_job {
     char mode;
     //======Datatype ends here=============
     int num_runs;
+    char* buffer;
     MPI_Comm group_comm;
+    MPI_Info info;
     int num_files_per_proc;
     char lib_name[32];
     void* lib_handle;
@@ -99,12 +101,12 @@ typedef struct lcio_engine {
     char *name;
     void* (*create)(char*, lcio_job_t*);
     void* (*open)(char*, lcio_job_t*);
-    void  (*close)(int*, lcio_job_t*);
-    void  (*remove)(char*, lcio_job_t*);
-    void* (*write)(const int*, lcio_job_t*);
-    void* (*read)(const int*, lcio_job_t*);
-    void* (*stat)(char*, lcio_job_t*);
-    void  (*fsync)(const int*, lcio_job_t*);
+    void  (*close)(void *, lcio_job_t *);
+    void  (*remove)(char*, lcio_job_t *);
+    void* (*write)(void *, lcio_job_t *);
+    void* (*read)(void *, lcio_job_t *);
+    void* (*stat)(void *, lcio_job_t *);
+    void  (*fsync)(void *, lcio_job_t *);
 
 } lcio_engine_t;
 

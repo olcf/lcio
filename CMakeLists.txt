@@ -11,6 +11,8 @@ link_directories(${CMAKE_SOURCE_DIR}/lib)
 
 add_library(posix MODULE lib/posix.c)
 
+add_library(mpiio MODULE lib/mpiio.c)
+
 add_executable(lcio
         conf_parser.c
         conf_parser.h
@@ -24,3 +26,6 @@ add_executable(lcio
 target_link_libraries(lcio PRIVATE ${MPI_C_LIBRARIES})
 target_link_libraries(lcio PRIVATE m)
 target_include_directories(lcio PRIVATE ${MPI_C_INCLUDE_PATH})
+
+target_link_libraries(mpiio PRIVATE ${MPI_C_LIBRARIES})
+target_include_directories(mpiio PRIVATE ${MPI_C_INCLUDE_PATH})

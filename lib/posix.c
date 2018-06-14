@@ -24,55 +24,50 @@ void* posix_create(char* fn, lcio_job_t* job){
 
 void* posix_open(char* fn, lcio_job_t* job){
     int* fd;
-    int flags = O_CREAT | O_RDWR | O_TRUNC;
+    int flags = O_APPEND| O_RDWR;
     mode_t mode = S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH;
-
     fd = malloc(sizeof(int));
-
     *fd = open(fn, flags, mode);
     return (void*)fd;
 }
 
-void posix_close(int* fdes, lcio_job_t* job){
+void posix_close(void* fdes, lcio_job_t* job){
 
-    close(*fdes);
+    close(*(int*)fdes);
     free(fdes);
 }
 
 void posix_delete(char* fn, lcio_job_t* job){
     unlink(fn);
-
 }
 
-void* posix_write(const int* fdes, lcio_job_t* job){
+void* posix_write(void* fdes, lcio_job_t* job){
     ssize_t *rv;
-    char buf[job->blk_sz];
     rv = malloc(sizeof(ssize_t));
-    memset(buf, 'a', job->blk_sz);
+    //memset(job->buffer, 'a', job->blk_sz);
 
-    *rv = write(*fdes, buf, job->blk_sz);
+    *rv = write(*(int*)fdes, job->buffer, job->blk_sz);
     return (void*)rv;
 }
 
-void* posix_read(const int* fdes, lcio_job_t* job){
+void* posix_read(void* fdes, lcio_job_t* job){
     ssize_t *rv;
-    char buf[job->blk_sz];
 
     rv = malloc(sizeof(ssize_t));
 
 
-    *rv = read(*fdes, buf, job->blk_sz);
+    *rv = read(*(int*)fdes, job->buffer, job->blk_sz);
     return (void*)rv;
 }
 
-void* posix_stat(char* fn, lcio_job_t* job){
+void* posix_stat(void* fn, lcio_job_t* job){
     struct stat statbuf;
     int* err;
 
     err = malloc(sizeof(int));
-    *err = stat(fn, &statbuf);
+    *err = stat((char*)fn, &statbuf);
     if(statbuf.st_size != job->blk_sz && job->mode == 'U'){
-        FILE_WARN(fn, statbuf.st_size , job->blk_sz);
+        FILE_WARN((char*)fn, statbuf.st_size , job->blk_sz);
     }
     //if(statbuf.st_size != (job->job->blk_sz && job->mode == 'S'){
     //    FILE_WARN(fn, )
@@ -80,8 +75,8 @@ void* posix_stat(char* fn, lcio_job_t* job){
     return (void*)err;
 }
 
-void posix_fsync(const int* fdes, lcio_job_t* job){
-    fsync(*fdes);
+void posix_fsync(void* fdes, lcio_job_t* job){
+    fsync(*(int*)fdes);
 }
 
 

@@ -100,6 +100,24 @@ void lcio_write(lcio_job_t* job){
 
 }
 
+void lcio_read(lcio_job_t* job){
+    int* fd;
+    int i;
+    char file[64];
+
+    for(i=0; i < job->num_files_per_proc; i++){
+        lcio_filename(file, job, i);
+
+        fd = (int*) job->ioengine->open(file, job);
+        job->ioengine->read(fd, job);
+        if(job->fsync){
+            job->ioengine->fsync(fd, job);
+        }
+        job->ioengine->close(fd, job);
+    }
+
+}
+
 void lcio_stat(lcio_job_t* job){
     int i;
     char file[64];
@@ -122,29 +140,12 @@ void lcio_remove(lcio_job_t* job){
     job->ioengine->remove(job->tmp_dir, job);
 }
 
-
-void lcio_setup_unique(lcio_job_t* job){
-    lcio_register_engine(job);
-    //job->fd_array = malloc(sizeof(int) * job->num_files);
-    mkdir(job->tmp_dir, S_IRWXU | S_IRWXG);
-}
-
-void lcio_setup_shared(lcio_job_t* job){
-    lcio_register_engine(job);
-    //job->fd_array = malloc(sizeof(int) * job->num_files);
-    mkdir(job->tmp_dir, S_IRWXU | S_IRWXG);
-
-}
-
 void lcio_setup(lcio_job_t* job){
-    if(job->mode == 'U'){
-        lcio_setup_unique(job);
-        return;
-    }
-    if(job->mode == 'S'){
-        lcio_setup_shared(job);
-        return;
-    }
+
+    lcio_register_engine(job);
+    //job->fd_array = malloc(sizeof(int) * job->num_files);
+    mkdir(job->tmp_dir, S_IRWXU | S_IRWXG);
+
 }
 
 void lcio_teardown(lcio_job_t* job){
@@ -188,13 +189,18 @@ void file_test_full(lcio_job_t *job){
         times[1] = elapsed_time(t2, t1);
         //print_log(times[i], "write", rank);
 
-
+/*
         t1 = get_time();
         lcio_stat(job);
         t2 = get_time();
         times[2] = elapsed_time(t2, t1);
         //print_log(times[i], "stat ", rank);
-
+*/
+        t1 = get_time();
+        lcio_read(job);
+        t2 = get_time();
+        times[3] = elapsed_time(t2, t1);
+        //print_log(times[i], "write", rank);
 
         /*
         t1 = get_time();
