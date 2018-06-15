@@ -107,14 +107,9 @@ int main(int argc, char** argv) {
 
         MPI_Bcast(myjob, 1, MPI_LCIO_JOB, 0, world_comm);
         if(world_rank != 0) params->jobs[i] = myjob;
+        params->jobs[i]->job_number = i;
     }
     MPI_Barrier(world_comm);
-
-    /*
-     * This will change for future versions. Currently, processes
-     * are split (mostly) evenly between jobs. Will change so that
-     * each job will get a configurable amount of processes.
-     */
 
     res = 0;
     for(i = 0 ; i < params->num_jobs; i++){
@@ -125,6 +120,8 @@ int main(int argc, char** argv) {
         }
     }
     MPI_Barrier(world_comm);
+
+
     if(color == -1) {
         fprintf(stderr, "ERROR: color failed: rank %d\n", world_rank);
         MPI_Abort(MPI_COMM_WORLD, 1);
@@ -134,6 +131,7 @@ int main(int argc, char** argv) {
 
     MPI_Comm_size(group_comm, &grp_sz);
     MPI_Comm_rank(group_comm, &my_rank);
+
 
     myjob = params->jobs[color];
     myjob->group_comm = group_comm;

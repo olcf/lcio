@@ -49,7 +49,7 @@ typedef struct lcio_engine lcio_engine_t;
 /*
  * IMPORTANT: The order here matters since this struct is
  * compressed into an MPI datatype for broadcasting.
- * the last three parameters (lib_name, lib_handle, ioengine)
+ * The filed below the comment
  * are NOT read in by main, they are there for each process to
  * fill in as necessary. As such, the MPI Datatype for this
  * struct only takes the first 8 fields.
@@ -70,6 +70,7 @@ typedef struct lcio_job {
     float stdev;
     char mode;
     //======Datatype ends here=============
+    int job_number;
     int num_runs;
     char* buffer;
     MPI_Comm group_comm;
