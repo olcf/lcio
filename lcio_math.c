@@ -151,7 +151,8 @@ void report_job_stats(lcio_job_t* job){
     const char fmt[] =  "%12s ::  %.8lf  %.8lf  %.8lf  %.8lf\n";
 
     int i;
-    printf("\nJob: %s with %d processes of type %c\n", job->type, job->num_pes,job->mode);
+    printf("\nJob: %s with %d processes of type %c\nEngine: %s\n",
+           job->type, job->num_pes,job->mode, job->engine);
     printf("Results of %d runs\n\n", job->num_runs);
 
     printf(header, "", "Max", "Min", "Avg", "Stddev");

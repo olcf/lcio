@@ -16,6 +16,12 @@ void print_log(double t, char* op, int r){
 int lcio_filename_unique(char *file, char *dir, int i){
     int rank;
     int err;
+    /*
+     * we use MPI_COMM_WORLD here since we want each process to have a
+     * unique filename. Not olny is it simpler, it also prevents
+     * name conflicts in case we wish to use the same directory for
+     * each job
+     */
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     err = sprintf(file, "%s/%s.%d.%d", dir, prefix_g, i,rank);
     return err;
@@ -37,6 +43,7 @@ int lcio_directory_tree(char* dir, int i, int cur_depth, lcio_job_t* job){
     /*
      * create a directory tree with 'mean' number of directories per
      * level
+     * Future use
      */
     return -1;
 
@@ -154,13 +161,6 @@ void lcio_teardown(lcio_job_t* job){
     if(job->clean == 1) rmdir(job->tmp_dir);
 }
 
-/*
- * This is ok for now, but needs some work for
- * the MPI integration. in particular, needs a more
- * portable reporting system. Maybe make a 'statistics'
- * struct?
- *
- */
 
 void file_test_full(lcio_job_t *job){
 
@@ -189,29 +189,26 @@ void file_test_full(lcio_job_t *job){
         times[1] = elapsed_time(t2, t1);
         //print_log(times[i], "write", rank);
 
-/*
+
         t1 = get_time();
         lcio_stat(job);
         t2 = get_time();
         times[2] = elapsed_time(t2, t1);
-        //print_log(times[i], "stat ", rank);
-*/
+
         t1 = get_time();
         lcio_read(job);
         t2 = get_time();
         times[3] = elapsed_time(t2, t1);
-        //print_log(times[i], "write", rank);
+
 
         /*
         t1 = get_time();
         lcio_remove(job);
         t2 = get_time();
         times[i] = elapsed_time(t2,t1);
-        print_log(times[i], "remove ",rank);
-        i+=1;
          */
         job->job_timings->raw_times[iter] = times;
-        //print_log(final, "final", rank);
+
     }
 
     lcio_teardown(job);
@@ -235,15 +232,12 @@ void file_test_light(lcio_job_t *job){
         lcio_create(job);
         t2 = get_time();
         times[0] = elapsed_time(t2, t1);
-        //print_log(times[i], "create", rank);
 
 
         t1 = get_time();
         lcio_stat(job);
         t2 = get_time();
         times[2] = elapsed_time(t2, t1);
-        //print_log(times[i], "stat ", rank);
-
 
         /*
         t1 = get_time();

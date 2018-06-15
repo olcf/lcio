@@ -35,6 +35,7 @@ void* mpiio_open(char* fn, lcio_job_t* job){
 
 void mpiio_close(void* fdes, lcio_job_t* job){
     MPI_File_close((MPI_File*)fdes);
+    free(fdes);
 }
 
 void mpiio_delete(char* fn, lcio_job_t* job){
@@ -62,10 +63,16 @@ void* mpiio_read(void* fdes, lcio_job_t* job){
 }
 
 void* mpiio_stat(void* fdes, lcio_job_t* job){
+
+    MPI_File* fh;
     MPI_Offset* sz;
+
+    fh =(MPI_File*) mpiio_open((char*)fdes, job);
     sz = malloc(sizeof(MPI_Offset));
 
-    MPI_File_get_size(*(MPI_File*)fdes, sz);
+    MPI_File_get_size(*fh, sz);
+    mpiio_close(fh, job);
+
     return (void*)sz;
 }
 
