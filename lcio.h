@@ -49,7 +49,7 @@ typedef struct lcio_engine lcio_engine_t;
 /*
  * IMPORTANT: The order here matters since this struct is
  * compressed into an MPI datatype for broadcasting.
- * The filed below the comment
+ * The items below the comment
  * are NOT read in by main, they are there for each process to
  * fill in as necessary. As such, the MPI Datatype for this
  * struct only takes the first 8 fields.
@@ -84,10 +84,17 @@ typedef struct lcio_job {
 
 } lcio_job_t;
 
+typedef struct lcio_stage {
+    int num_jobs_in_stage;
+    int* jobs_in_stage;
+} lcio_stage_t;
+
 typedef struct lcio_param {
     int num_pes;
     int num_jobs;
     int num_runs;
+    int num_stages;
+
     lcio_job_t** jobs;
 } lcio_param_t;
 
@@ -95,7 +102,7 @@ typedef struct lcio_param {
 /*
  * lcio_engine_t describes the operations that lcio can perform.
  * These are function pointers that can be initialized with any
- * of the supported IO libraries (POSIX, MPI_IO, AIO) with the
+ * of the supported IO libraries (POSIX, MPI_IO, ) with the
  * goal of creating a uniform interface for the function calls.
  */
 typedef struct lcio_engine {
