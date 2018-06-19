@@ -17,6 +17,13 @@ void print_params(lcio_param_t* params){
     }
 }
 
+void print_arr(lcio_stage_t* stage){
+    int i;
+    for( i = 0; i < stage->num_jobs_in_stage; i++){
+        printf("job %d: %d\n", i, stage->jobs_in_stage[i]);
+    }
+}
+
 void get_buf_sz(char* field, lcio_job_t* job){
     int base;
     unsigned long long exp;
@@ -60,18 +67,14 @@ void fill_stages(struct conf *cfg, lcio_param_t *params){
         params->stages[i]->num_jobs_in_stage = (int) strtol(get_attr("num_jobs", sec), &end, 10);
         job_buf = get_attr("jobs", sec);
 
-        if(params->stages[i]->num_jobs_in_stage != (int)strlen(job_buf)){
+        if(params->stages[i]->num_jobs_in_stage != (int)strlen(job_buf)) {
             ELOCAL("# jobs mismatch. Aborting");
-        };
-
-        params->stages[i]->jobs_in_stage = malloc(sizeof(int) *
-                params->stages[i]->num_jobs_in_stage);
+        }
 
         for(j = 0; j < params->stages[i]->num_jobs_in_stage; j++){
             params->stages[i]->jobs_in_stage[j] = (int) job_buf[j] - '0';
         }
     }
-    
 }
 
 /*

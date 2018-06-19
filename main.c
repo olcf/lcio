@@ -20,7 +20,12 @@ int main(int argc, char** argv) {
 
     lcio_job_t* myjob;
     lcio_param_t *params;
+    lcio_stage_t* mystage;
     int num_jobs;
+
+    MPI_Datatype MPI_LCIO_JOB;
+    MPI_Datatype  MPI_LCIO_STAGE;
+
 
     MPI_Comm_dup(MPI_COMM_WORLD, &world_comm);
 
@@ -39,7 +44,6 @@ int main(int argc, char** argv) {
      * variables in lcio_job_t. Those are process specific,
      * and do not need to be broadcast. See lcio.h:[60-77]
      */
-    MPI_Datatype MPI_LCIO_JOB;
     const int count = 12;
     int blens[count] = {32,16,8,1,1,1,1,1,1,1,1,1};
     MPI_Datatype array_of_types[count] =
@@ -67,9 +71,21 @@ int main(int argc, char** argv) {
     /*
      * Create datatype for lcio_job_t
      */
+
     MPI_Type_create_struct(count, blens, disps, array_of_types, &MPI_LCIO_JOB);
     MPI_Type_commit(&MPI_LCIO_JOB);
 
+    /*
+     * Datatype for lcio_stage_t
+     */
+    const int c = 2;
+    int blens2[c] = {1,31};
+    MPI_Aint disps2[c];
+    disps2[0] = (MPI_Aint) 0;
+    disps2[1] = iextent;
+    MPI_Datatype arr2[c] = {MPI_INT, MPI_INT};
+    MPI_Type_create_struct(c,blens2, disps2, arr2, &MPI_LCIO_STAGE);
+    MPI_Type_commit(&MPI_LCIO_STAGE);
 
     /*
      * Root's (rank=0) responsibility is to
@@ -95,9 +111,22 @@ int main(int argc, char** argv) {
      */
     MPI_Bcast(&(params->num_jobs), 1, MPI_INT, 0, world_comm);
     MPI_Bcast(&(params->num_runs), 1, MPI_INT, 0, world_comm);
+    MPI_Bcast(&(params->num_stages), 1, MPI_INT, 0, world_comm);
 
     if(world_rank != 0){
-        params->jobs = malloc(sizeof(lcio_job_t) * params->num_jobs);
+        params->jobs = malloc(sizeof(lcio_job_t*) * params->num_jobs);
+        params->stages = malloc(sizeof(lcio_stage_t*) * params->num_stages);
+    }
+
+    MPI_Barrier(world_comm);
+
+    for(i=0; i < params->num_stages; i++){
+        if(world_rank == 0){mystage = params->stages[i];}
+        else { mystage = malloc(sizeof(lcio_stage_t));}
+
+        MPI_Bcast(mystage, 1, MPI_LCIO_STAGE, 0, world_comm);
+
+        if(world_rank != 0) params->stages[i] = mystage;
     }
 
     MPI_Barrier(world_comm);
@@ -155,7 +184,7 @@ int main(int argc, char** argv) {
     fflush(stdout);
 #endif
 
-    //execute_job(myjob);
+    execute_job(myjob);
     MPI_Finalize();
     exit(0);
 }

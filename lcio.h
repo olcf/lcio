@@ -26,7 +26,7 @@
 #define ELOCAL(MSG) do {\
         fprintf(stderr, "%s:%d -- LOCAL ERR:%s\n",            \
                 __FILE__, __LINE__, MSG);               \
-        MPI_Abort(MPI_COMM_WORLD);                      \
+        MPI_Abort(MPI_COMM_WORLD, 1);                      \
         exit(1);                                        \
     } while(0);
 
@@ -88,7 +88,7 @@ typedef struct lcio_job {
 
 typedef struct lcio_stage {
     int num_jobs_in_stage;
-    int* jobs_in_stage;
+    int jobs_in_stage[31];
 } lcio_stage_t;
 
 typedef struct lcio_param {
