@@ -19,13 +19,15 @@
 #define ERR(MSG) do {                           \
     fprintf(stderr, "%s:%d -- ERROR:%s (%d: %s)\n", \
             __FILE__, __LINE__, MSG, errno, strerr(errno));\
+    MPI_Abort(MPI_COMM_WORLD); \
     exit(1); \
     } while(0)
 
 #define ELOCAL(MSG) do {\
-        fprintf(stderr, "%s:%d -- LOCAL ERROR:%s\n",            \
-                __FILE__, __LINE__, MSG);                       \
-        exit(1);                                                \
+        fprintf(stderr, "%s:%d -- LOCAL ERR:%s\n",            \
+                __FILE__, __LINE__, MSG);               \
+        MPI_Abort(MPI_COMM_WORLD);                      \
+        exit(1);                                        \
     } while(0);
 
 
@@ -94,7 +96,7 @@ typedef struct lcio_param {
     int num_jobs;
     int num_runs;
     int num_stages;
-
+    lcio_stage_t** stages;
     lcio_job_t** jobs;
 } lcio_param_t;
 

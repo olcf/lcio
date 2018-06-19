@@ -155,7 +155,7 @@ int main(int argc, char** argv) {
     fflush(stdout);
 #endif
 
-    execute_job(myjob);
+    //execute_job(myjob);
     MPI_Finalize();
     exit(0);
 }

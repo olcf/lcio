@@ -47,6 +47,30 @@ void get_buf_sz(char* field, lcio_job_t* job){
 
 
 void fill_stages(struct conf *cfg, lcio_param_t *params){
+    struct section* sec;
+    char buf[16];
+    char* job_buf;
+    int i, j;
+    char* end;
+
+    for(i = 0; i < params->num_stages; i++){
+        sprintf(buf,"stage%d", i);
+        sec = get_section(buf, cfg);
+        params->stages[i] = malloc(sizeof(lcio_stage_t));
+        params->stages[i]->num_jobs_in_stage = (int) strtol(get_attr("num_jobs", sec), &end, 10);
+        job_buf = get_attr("jobs", sec);
+
+        if(params->stages[i]->num_jobs_in_stage != (int)strlen(job_buf)){
+            ELOCAL("# jobs mismatch. Aborting");
+        };
+
+        params->stages[i]->jobs_in_stage = malloc(sizeof(int) *
+                params->stages[i]->num_jobs_in_stage);
+
+        for(j = 0; j < params->stages[i]->num_jobs_in_stage; j++){
+            params->stages[i]->jobs_in_stage[j] = (int) job_buf[j] - '0';
+        }
+    }
     
 }
 
@@ -99,7 +123,10 @@ lcio_param_t* fill_parameters(struct conf *cfg){
     params->num_jobs = (int)strtol(get_attr("num_jobs", sec), &end, 10);
     params->num_pes = (int)strtol(get_attr("mpi_num_pes", sec), &end, 10);
     params->num_runs = (int)strtol(get_attr("num_runs", sec), &end, 10);
+    params->num_stages = (int)strtol(get_attr("num_stages", sec), &end, 10);
+
     params->jobs = malloc(sizeof(lcio_job_t*) * params->num_jobs);
+    params->stages = malloc(sizeof(lcio_stage_t*) * params->num_stages);
 
     fill_jobs(cfg, params);
     fill_stages(cfg, params);
