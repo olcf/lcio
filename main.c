@@ -140,51 +140,45 @@ int main(int argc, char** argv) {
     }
     MPI_Barrier(world_comm);
 
-    res = 0;
-    for(i = 0 ; i < params->num_jobs; i++){
-        res += params->jobs[i]->num_pes;
-        if(world_rank < res){
-            color = i;
-            break;
+
+    /*
+     * at this point, all pes have their work assignments
+     * Now, we start moving through the stages.
+     * Each stage will setup/teardown its own group comm.
+     */
+    int nstage;
+    for(nstage=0; nstage < params->num_stages; nstage++) {
+        mystage = params->stages[nstage];
+        res = 0;
+        for (i = 0; i < mystage->num_jobs_in_stage; i++) {
+            res += params->jobs[mystage->jobs_in_stage[i]]->num_pes;
+            if (world_rank < res) {
+                color = i;
+                break;
+            }
         }
+        MPI_Barrier(world_comm);
+
+
+        if (color == -1) {
+            fprintf(stderr, "ERROR: color failed: rank %d\n", world_rank);
+            MPI_Abort(MPI_COMM_WORLD, 1);
+            exit(1);
+        }
+        MPI_Comm_split(world_comm, color, world_rank, &group_comm);
+
+        MPI_Comm_size(group_comm, &grp_sz);
+        MPI_Comm_rank(group_comm, &my_rank);
+
+
+        myjob = params->jobs[mystage->jobs_in_stage[color]];
+        myjob->group_comm = group_comm;
+        myjob->num_files_per_proc = myjob->num_files / grp_sz;
+        myjob->num_runs = params->num_runs;
+
+        execute_job(myjob);
+        MPI_Barrier(world_comm);
     }
-    MPI_Barrier(world_comm);
-
-
-    if(color == -1) {
-        fprintf(stderr, "ERROR: color failed: rank %d\n", world_rank);
-        MPI_Abort(MPI_COMM_WORLD, 1);
-        exit(1);
-    }
-    MPI_Comm_split(world_comm, color, world_rank, &group_comm);
-
-    MPI_Comm_size(group_comm, &grp_sz);
-    MPI_Comm_rank(group_comm, &my_rank);
-
-
-    myjob = params->jobs[color];
-    myjob->group_comm = group_comm;
-    myjob->num_files_per_proc = myjob->num_files / grp_sz;
-    myjob->num_runs = params->num_runs;
-
-#if DEBUG_SET
-    printf("recved\n");
-    printf("==============\n");
-    printf(" %d::%d: tmp_dir:%s\n",my_rank, world_rank,myjob->tmp_dir);
-    printf(" %d::%d: type:%s\n", my_rank,world_rank,myjob->type);
-    printf(" %d::%d: engine:%s\n", my_rank,world_rank,myjob->engine);
-    printf(" %d::%d: pes:%d\n",my_rank,world_rank, myjob->num_pes);
-    printf(" %d::%d: num_files:%d\n",my_rank, world_rank,myjob->num_files);
-    printf(" %d::%d: blk_sz:%lld\n",my_rank,world_rank, myjob->blk_sz);
-    printf(" %d::%d: fsync:%d\n",my_rank, world_rank,myjob->fsync);
-    printf(" %d::%d: mode:%c\n",my_rank,world_rank,myjob->mode);
-    printf(" %d::%d: mean:%f\n", my_rank, world_rank,myjob->mean);
-    printf(" %d::%d: stdev:%f\n", my_rank, world_rank,myjob->stdev);
-    printf(" %d::%d: depth:%d\n", my_rank, world_rank,myjob->depth);
-    fflush(stdout);
-#endif
-
-    execute_job(myjob);
     MPI_Finalize();
     exit(0);
 }
