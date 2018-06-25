@@ -44,7 +44,6 @@ void posix_delete(char* fn, lcio_job_t* job){
 void* posix_write(void* fdes, lcio_job_t* job){
     ssize_t *rv;
     rv = malloc(sizeof(ssize_t));
-    //memset(job->buffer, 'a', job->blk_sz);
 
     *rv = write(*(int*)fdes, job->buffer, job->blk_sz);
     return (void*)rv;
@@ -52,9 +51,7 @@ void* posix_write(void* fdes, lcio_job_t* job){
 
 void* posix_read(void* fdes, lcio_job_t* job){
     ssize_t *rv;
-
     rv = malloc(sizeof(ssize_t));
-
 
     *rv = read(*(int*)fdes, job->buffer, job->blk_sz);
     return (void*)rv;
@@ -66,11 +63,8 @@ void* posix_stat(void* fn, lcio_job_t* job){
 
     err = malloc(sizeof(int));
     *err = stat((char*)fn, &statbuf);
-    if(statbuf.st_size != job->blk_sz && job->mode == 'U'){
-        FILE_WARN((char*)fn, statbuf.st_size , job->blk_sz);
-    }
-    //if(statbuf.st_size != (job->job->blk_sz && job->mode == 'S'){
-    //    FILE_WARN(fn, )
+    //if(statbuf.st_size != job->blk_sz && job->mode == 'U'){
+    //    FILE_WARN((char*)fn, statbuf.st_size , job->blk_sz);
     //}
     return (void*)err;
 }
