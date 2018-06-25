@@ -167,4 +167,5 @@ void report_job_stats(lcio_job_t* job){
     }
     printf(lines);
     printf("\n\n");
+    fflush(stdout);
 }

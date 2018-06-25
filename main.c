@@ -45,14 +45,14 @@ int main(int argc, char** argv) {
      * and do not need to be broadcast. See lcio.h:[60-77]
      */
     const int count = 12;
-    int blens[count] = {32,16,8,1,1,1,1,1,1,1,1,1};
-    MPI_Datatype array_of_types[count] =
+    int blens[12] = {32,16,8,1,1,1,1,1,1,1,1,1};
+    MPI_Datatype array_of_types[12] =
             {MPI_CHAR, MPI_CHAR, MPI_CHAR,
              MPI_INT, MPI_INT,
              MPI_UNSIGNED_LONG_LONG,
              MPI_INT, MPI_INT, MPI_INT, MPI_FLOAT, MPI_FLOAT,
              MPI_CHAR};
-    MPI_Aint disps[count];
+    MPI_Aint disps[12];
 
     /* displacements in struct */
     disps[0] = (MPI_Aint) 0; //tmp_dir
@@ -79,11 +79,11 @@ int main(int argc, char** argv) {
      * Datatype for lcio_stage_t
      */
     const int c = 2;
-    int blens2[c] = {1,31};
-    MPI_Aint disps2[c];
+    int blens2[2] = {1,31};
+    MPI_Aint disps2[2];
     disps2[0] = (MPI_Aint) 0;
     disps2[1] = iextent;
-    MPI_Datatype arr2[c] = {MPI_INT, MPI_INT};
+    MPI_Datatype arr2[2] = {MPI_INT, MPI_INT};
     MPI_Type_create_struct(c,blens2, disps2, arr2, &MPI_LCIO_STAGE);
     MPI_Type_commit(&MPI_LCIO_STAGE);
 
@@ -148,6 +148,9 @@ int main(int argc, char** argv) {
      */
     int nstage;
     for(nstage=0; nstage < params->num_stages; nstage++) {
+        /*/
+         * change this to use MPI_Group_incl_create
+         */
         mystage = params->stages[nstage];
         res = 0;
         for (i = 0; i < mystage->num_jobs_in_stage; i++) {
@@ -159,7 +162,6 @@ int main(int argc, char** argv) {
         }
         MPI_Barrier(world_comm);
 
-
         if (color == -1) {
             fprintf(stderr, "ERROR: color failed: rank %d\n", world_rank);
             MPI_Abort(MPI_COMM_WORLD, 1);
@@ -169,14 +171,18 @@ int main(int argc, char** argv) {
 
         MPI_Comm_size(group_comm, &grp_sz);
         MPI_Comm_rank(group_comm, &my_rank);
+        printf("stage:%d  wr:%d  gr: %d  color %d \n", nstage, world_rank, my_rank, color);
 
 
-        myjob = params->jobs[mystage->jobs_in_stage[color]];
-        myjob->group_comm = group_comm;
-        myjob->num_files_per_proc = myjob->num_files / grp_sz;
-        myjob->num_runs = params->num_runs;
+        if( color > -1) {
+            myjob = params->jobs[mystage->jobs_in_stage[color]];
+            myjob->group_comm = group_comm;
+            myjob->num_files_per_proc = myjob->num_files / grp_sz;
+            myjob->num_runs = params->num_runs;
 
-        execute_job(myjob);
+            MPI_Barrier(world_comm);
+            execute_job(myjob);
+        }
         MPI_Barrier(world_comm);
     }
     MPI_Finalize();
