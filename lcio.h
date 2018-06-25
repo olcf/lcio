@@ -134,8 +134,4 @@ double elapsed_time(double, double);
 void execute_job(lcio_job_t* job);
 void report_job_stats(lcio_job_t*);
 
-
-MPI_Datatype MPI_LCIO_JOB;
-MPI_Datatype  MPI_LCIO_STAGE;
-
 #endif //LCIO_LCIO_H
