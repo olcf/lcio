@@ -44,15 +44,16 @@ int main(int argc, char** argv) {
      * variables in lcio_job_t. Those are process specific,
      * and do not need to be broadcast. See lcio.h:[60-77]
      */
-    const int count = 12;
-    int blens[12] = {32,16,8,1,1,1,1,1,1,1,1,1};
-    MPI_Datatype array_of_types[12] =
+    const int count = 13;
+    int blens[13] = {32,16,8,1,1,1,1,1,1,1,1,1,1};
+    MPI_Datatype array_of_types[13] =
             {MPI_CHAR, MPI_CHAR, MPI_CHAR,
              MPI_INT, MPI_INT,
              MPI_UNSIGNED_LONG_LONG,
+             MPI_UNSIGNED_LONG_LONG,
              MPI_INT, MPI_INT, MPI_INT, MPI_FLOAT, MPI_FLOAT,
              MPI_CHAR};
-    MPI_Aint disps[12];
+    MPI_Aint disps[13];
 
     /* displacements in struct */
     disps[0] = (MPI_Aint) 0; //tmp_dir
@@ -61,12 +62,13 @@ int main(int argc, char** argv) {
     disps[3] = disps[2] + (cextent * 8); //num_pes
     disps[4] = disps[3] + iextent; //num_files
     disps[5] = disps[4] + iextent; //blk_sz
-    disps[6] = disps[5] + ullextent; //fsync
-    disps[7] = disps[6] + iextent; //clean
-    disps[8] = disps[7] + iextent; //depth
-    disps[9] = disps[8] + iextent; //mean
-    disps[10] = disps[9] + fextent; //stddev
-    disps[11] = disps[10] + fextent; //mode
+    disps[6] = disps[5] + ullextent; //buf_sz
+    disps[7] = disps[6] + ullextent; //fsync
+    disps[8] = disps[7] + iextent; //clean
+    disps[9] = disps[8] + iextent; //depth
+    disps[10] = disps[9] + iextent; //mean
+    disps[11] = disps[10] + fextent; //stddev
+    disps[12] = disps[11] + fextent; //mode
 
     /*
      * Create datatype for lcio_job_t

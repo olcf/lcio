@@ -24,7 +24,7 @@ void print_arr(lcio_stage_t* stage){
     }
 }
 
-void get_buf_sz(char* field, lcio_job_t* job){
+void get_buf_sz(char* field, lcio_job_t* job, char* f){
     int base;
     unsigned long long exp;
     char scale;
@@ -45,10 +45,10 @@ void get_buf_sz(char* field, lcio_job_t* job){
             exp = (1 << 10);
             break;
         default:
-            ELOCAL("Invalid scale (must be M or K)");
+            exp = 1;
     }
-
-    job->blk_sz = (base * exp);
+    if(!strcmp(f, "block")) job->blk_sz = (base * exp);
+    if(!strcmp(f, "buffer")) job->buf_sz = (base * exp);
 
 }
 
@@ -102,11 +102,11 @@ void fill_jobs(struct conf *cfg, lcio_param_t* params){
         params->jobs[i]->fsync = (int)strtol(get_attr("fsync", sec), &end, 10);
         params->jobs[i]->depth = (int)strtol(get_attr("depth", sec), &end, 10);
         params->jobs[i]->clean = (int)strtol(get_attr("clean", sec), &end, 10);
-
         params->jobs[i]->mean = strtof(get_attr("mean", sec), &end);
         params->jobs[i]->stdev = strtof(get_attr("stdev", sec), &end);
 
-        get_buf_sz(get_attr("block_size", sec), params->jobs[i]);
+        get_buf_sz(get_attr("buffer_size", sec), params->jobs[i], "buffer");
+        get_buf_sz(get_attr("block_size", sec), params->jobs[i], "block");
         sscanf(get_attr("mode", sec), "%c", &(params->jobs[i]->mode));
 
     }

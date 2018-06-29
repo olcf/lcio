@@ -24,6 +24,10 @@ typedef struct lcio_results {
     double* min_times;
     double* avg_times;
     double* variances;
+    double* max_bandwidths;
+    double* min_bandwidths;
+    double* avg_bandwidths;
+    double* var_bandwidths;
     double** raw_times;
 
 } lcio_results_t;
@@ -31,6 +35,7 @@ typedef struct lcio_results {
 void divide(double*, double, int);
 
 void process_times(lcio_results_t*, int);
+
 
 #endif //LCIO_LCIO_MATH_H
 

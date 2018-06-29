@@ -4,7 +4,6 @@
 
 #include "lcio.h"
 
-
 float gen_rand_normal(float mean, float stddev, long seed) {
     static double n2 = 0.0;
     static int n2_cached = 0;
@@ -102,14 +101,12 @@ double stddev(const double* arr, int num_runs){
     return sqrt(var);
 }
 
-double calc_iops(double time, lcio_job_t* job){
-
-    double iops;
-    double rate = (double)job->blk_sz / time;
-
-    iops = rate / (double)job->blk_sz;
-
-    return iops;
+double calc_bw(double time, lcio_job_t* job){
+    // 'time' is the sum of all the individual process times
+    // so, divide by the total number of files.
+    double rate = (double)job->blk_sz * (double)job->num_files / (time * (1 << 20));
+    // this is in MiB/sec
+    return isinf(rate) ? 0 : rate;
 }
 
 /*
@@ -144,25 +141,48 @@ void process_times(lcio_results_t* res, int num_runs){
 
 }
 
+void process_bandwidths(lcio_job_t* job){
+    int i;
+
+    for( i = 0; i < TIME_ARR_SZ; i++){
+        job->job_results->max_bandwidths[i] = calc_bw(job->job_results->max_times[i], job);
+        job->job_results->min_bandwidths[i] = calc_bw(job->job_results->min_times[i], job);
+        job->job_results->avg_bandwidths[i] = calc_bw(job->job_results->avg_times[i], job);
+        job->job_results->var_bandwidths[i] = calc_bw(job->job_results->variances[i], job);
+    }
+}
+
 void report_job_stats(lcio_job_t* job){
-    const char header[]="================================================================\n"
-                         "%12s    %8s   %8s    %8s      %8s\n";
-    const char lines[] ="----------------------------------------------------------------\n";
+    const char header[]="==========================================================================\n"
+                         "%12s    %12s  %12s  %12s  %12s\n";
+    const char lines[] ="--------------------------------------------------------------------------\n";
     const char fmt[] =  "%12s ::  %.8lf  %.8lf  %.8lf  %.8lf\n";
+    const char fmt2[] = "%12s :: %12.4lf  %12.4lf  %12.4lf  %12.4lf\n";
 
     int i;
+    process_bandwidths(job);
+
     printf("\nJob: %s with %d processes of type %c\nEngine: %s\n",
            job->type, job->num_pes,job->mode, job->engine);
     printf("Results of %d runs\n\n", job->num_runs);
 
     printf(header, "", "Max", "Min", "Avg", "Stddev");
     printf(lines);
-    for (i = 0; i < TIME_ARR_SZ; i ++){
+    for (i = 0; i < TIME_ARR_SZ; i ++) {
+
         printf(fmt, g_op_indicies[i],
                job->job_results->max_times[i],
                job->job_results->min_times[i],
                job->job_results->avg_times[i],
                sqrt(job->job_results->variances[i]));
+    }
+    printf(lines);
+    for (i = 0; i < TIME_ARR_SZ; i ++) {
+        printf(fmt2, g_op_indicies[i],
+               job->job_results->max_bandwidths[i],
+               job->job_results->min_bandwidths[i],
+               job->job_results->avg_bandwidths[i],
+               sqrt(job->job_results->var_bandwidths[i]));
         //printf(lines);
     }
     printf(lines);

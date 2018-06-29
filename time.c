@@ -17,8 +17,7 @@ double get_time(void){
 }
 
 double elapsed_time(double t1, double t2){
-    if (t1 > t2) return t1-t2;
-    else return t2-t1;
+    return fabs(t1 -t2);
 }
 
 

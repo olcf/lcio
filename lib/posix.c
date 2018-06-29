@@ -24,7 +24,7 @@ void* posix_create(char* fn, lcio_job_t* job){
 
 void* posix_open(char* fn, lcio_job_t* job){
     int* fd;
-    int flags = O_APPEND| O_RDWR;
+    int flags = O_CREAT| O_APPEND| O_RDWR;
     mode_t mode = S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH;
     fd = malloc(sizeof(int));
     *fd = open(fn, flags, mode);
@@ -41,19 +41,25 @@ void posix_delete(char* fn, lcio_job_t* job){
     unlink(fn);
 }
 
-void* posix_write(void* fdes, lcio_job_t* job){
+void* posix_write(void* fdes, lcio_job_t* job) {
     ssize_t *rv;
+    unsigned long long i;
     rv = malloc(sizeof(ssize_t));
-
-    *rv = write(*(int*)fdes, job->buffer, job->blk_sz);
+    *rv = 0;
+    for (i = 0; i < job->blk_sz; i += job->buf_sz){
+        *rv += write(*(int *) fdes, job->buffer, job->buf_sz);
+    }
     return (void*)rv;
 }
 
 void* posix_read(void* fdes, lcio_job_t* job){
     ssize_t *rv;
+    unsigned long long i;
     rv = malloc(sizeof(ssize_t));
-
-    *rv = read(*(int*)fdes, job->buffer, job->blk_sz);
+    *rv = 0;
+    for (i = 0; i < job->blk_sz; i += job->buf_sz) {
+        *rv += read(*(int *) fdes, job->buffer, job->buf_sz);
+    }
     return (void*)rv;
 }
 

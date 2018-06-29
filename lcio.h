@@ -65,6 +65,7 @@ typedef struct lcio_job {
     int num_pes;
     int num_files;
     unsigned long long blk_sz;
+    unsigned long long buf_sz;
     int fsync;
     int clean;
     int depth;
@@ -133,5 +134,5 @@ double get_time(void);
 double elapsed_time(double, double);
 void execute_job(lcio_job_t* job);
 void report_job_stats(lcio_job_t*);
-
+void process_bandwidths(lcio_job_t*);
 #endif //LCIO_LCIO_H

@@ -14,7 +14,8 @@ void execute_job(lcio_job_t* job){
     MPI_Comm_size(job->group_comm, &group_sz);
 
     MPI_Info_create(&(job->info));
-    job->buffer = malloc(sizeof(char) * job->blk_sz);
+    job->buffer = calloc(job->buf_sz, sizeof(char));
+    memset(job->buffer, 'c', job->buf_sz);
 
     /*
      * IOPS will be back calculated from the timings
@@ -32,10 +33,19 @@ void execute_job(lcio_job_t* job){
     job->job_results->min_times = calloc(TIME_ARR_SZ, sizeof(double));
     job->job_results->avg_times = calloc(TIME_ARR_SZ, sizeof(double));
     job->job_results->variances = calloc(TIME_ARR_SZ, sizeof(double));
+    if(rank == 0) {
+        job->job_results->max_bandwidths = calloc(TIME_ARR_SZ, sizeof(double));
+        job->job_results->min_bandwidths = calloc(TIME_ARR_SZ, sizeof(double));
+        job->job_results->avg_bandwidths = calloc(TIME_ARR_SZ, sizeof(double));
+        job->job_results->var_bandwidths = calloc(TIME_ARR_SZ, sizeof(double));
+    };
 
+    if(rank == 0){
+        printf("blk_sz: %lld  --  buf_sz %lld\n", job->blk_sz, job->buf_sz);
+    }
 
-    if(!strcmp(job->type, "metadata_full"))file_test_full(job);
-    if(!strcmp(job->type, "metadata_light"))file_test_light(job);
+    if(!strcmp(job->type, "rw"))file_test_full(job);
+    if(!strcmp(job->type, "rw_light"))file_test_light(job);
 
     process_times(job->job_timings, job->num_runs);
     /*
