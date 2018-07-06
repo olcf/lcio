@@ -39,16 +39,6 @@ int lcio_filename(char* file, lcio_job_t* job, int i){
     return -1;
 }
 
-int lcio_directory_tree(char* dir, int i, int cur_depth, lcio_job_t* job){
-    /*
-     * create a directory tree with 'mean' number of directories per
-     * level
-     * Future use
-     */
-    return -1;
-
-}
-
 void lcio_register_engine(lcio_job_t *job){
     char lib[64];
     char* error;
