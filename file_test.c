@@ -18,7 +18,7 @@ int lcio_filename_unique(char *file, char *dir, int i){
     int err;
     /*
      * we use MPI_COMM_WORLD here since we want each process to have a
-     * unique filename. Not omly is it simpler, it also prevents
+     * unique filename. Not only is it simpler, it also prevents
      * name conflicts in case we wish to use the same directory for
      * each job
      */
