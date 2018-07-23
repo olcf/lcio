@@ -17,7 +17,9 @@ static const char* g_op_indicies[TIME_ARR_SZ] = {"create",
                                     "tree create",
                                     "tree_remove"};
 
-float gen_rand_normal(float mean, float stddev, long seed);
+double gen_rand_normal(double mean, double stddev);
+double gen_random_gamma(double k, double theta);
+void seed_rng(long);
 
 typedef struct lcio_results {
     double* max_times;
@@ -33,6 +35,8 @@ typedef struct lcio_results {
 } lcio_results_t;
 
 void divide(double*, double, int);
+
+double convert_suffix(char*);
 
 void process_times(lcio_results_t*, int);
 

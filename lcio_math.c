@@ -4,12 +4,14 @@
 
 #include "lcio.h"
 
-float gen_rand_normal(float mean, float stddev, long seed) {
+static void seed_rng(long seed){
+    srand48(seed);
+}
+
+double gen_rand_normal(double mean, double stddev) {
     static double n2 = 0.0;
     static int n2_cached = 0;
-    srand48(seed);
-    if (!n2_cached)
-    {
+    if (!n2_cached) {
         double x, y, r;
         do
         {
@@ -17,8 +19,7 @@ float gen_rand_normal(float mean, float stddev, long seed) {
             y = 2.0*drand48()/RAND_MAX - 1;
 
             r = x*x + y*y;
-        }
-        while (r == 0.0 || r > 1.0);
+        } while (r == 0.0 || r > 1.0);
 
         {
             double d = sqrt(-2.0*log(r)/r);
@@ -26,14 +27,43 @@ float gen_rand_normal(float mean, float stddev, long seed) {
             n2 = y*d;
             double result = n1*stddev + mean;
             n2_cached = 1;
-            return (float)result;
+            return result;
         }
     }
     else
     {
         n2_cached = 0;
-        return (float)n2*stddev + mean;
+        return n2*stddev + mean;
     }
+}
+
+double gen_random_gamma(double k, double theta){
+    // this is modeled after the GNU Sci lib version
+    if(k < 1){
+        double u = drand48();
+        return gen_random_gamma(1.0 + k, theta) * pow(u, 1.0 / k);
+    }
+    static double n1 = 0.0;
+    static int n1 = 0;
+    double d,c,x,v,u;
+
+    d = k - 1.0 / 3.0;
+    c = (1.0/3.0) / sqrt(d);
+    while (1){
+        do {
+            x = gen_rand_normal(0, 1);
+            v = 1.0 + c * x;
+        } while(v >= 0.0);
+
+        v = v * v * v;
+        u = drand48();
+        if (u > 1 - 0.0331 * x * x * x * x)
+            break;
+
+        if (log (u) > 0.5 * x * x + d * (1 - v + log (v)))
+            break;
+    }
+    return theta * d * v;
 }
 
 void divide(double* arr, double divisor, int len){
@@ -188,4 +218,38 @@ void report_job_stats(lcio_job_t* job){
     printf(lines);
     printf("\n\n");
     fflush(stdout);
+}
+
+
+
+double convert_suffix(char* sz){
+    int base;
+    unsigned long long exp;
+    char scale;
+    int err;
+
+    err = sscanf(sz,"%d%c", &base, &scale);
+    if(err != 2){
+        ELOCAL("Did not convert block size parameter");
+    }
+
+    switch(scale){
+        case 't':
+            exp = (1 << 40);
+            break;
+        case 'g':
+            exp = (1 << 30);
+            break;
+        case 'm':
+            exp = (1 << 20);
+            break;
+        case 'k':
+            exp = (1 << 10);
+            break;
+        default:
+            exp = 1;
+    }
+
+    return (double) base * exp;
+
 }

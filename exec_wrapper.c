@@ -5,6 +5,11 @@
 #include "lcio.h"
 #include "lcio_math.h"
 
+void execute_aging(lcio_job_t* job){
+
+}
+
+
 void execute_job(lcio_job_t* job){
     int rank;
     int group_sz;

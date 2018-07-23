@@ -183,7 +183,12 @@ int main(int argc, char** argv) {
             myjob->num_runs = params->num_runs;
 
             MPI_Barrier(world_comm);
-            execute_job(myjob);
+            if(!(strcmp(myjob->type, "file_tree"))){
+                execute_aging(myjob);
+            }
+            else{
+                execute_job(myjob);
+            }
         }
         MPI_Barrier(world_comm);
     }
