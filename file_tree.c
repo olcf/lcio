@@ -47,13 +47,28 @@ void register_engine(lcio_job_t *job){
 }
 
 void setup_aging(lcio_job_t* job){
-
     register_engine(job);
-    //job->fd_array = malloc(sizeof(int) * job->num_files);
     mkdir(job->tmp_dir, S_IRWXU | S_IRWXG);
 }
 
 void age_file_system(lcio_job_t* job){
+    char* my_u_dir;
+    struct file_entry* files;
+
+    setup_aging(job);
+    my_u_dir = process_unique_dir(job);
+
+    mkdir(my_u_dir, S_IRWXU | S_IRWXG);
+    chdir(my_u_dir);
+    // in local work directory now.
+
+    //create list of files
+
+    //write files with sizes pulled from gamma dist
+
+    //generate new sizes, and delete/write new files.
+
+    //continue for an epoch
 
 
 }

@@ -33,7 +33,7 @@ const char *sizes[26] = {"4k","8k", "16k", "32k", "64k",
                          "128g", "256g", "512g", "1t", "4t", "8t"};
 
 struct file_entry{
-    char* fname; // this will be the key, sorted lexicographically
+    char* fname; // this will be the key,
     long long int size; // if size is 0, it is a dir.
 };
 
