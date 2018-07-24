@@ -5,7 +5,44 @@
 #include "file_tree.h"
 #include "lcio.h"
 #include <dlfcn.h>
+#include <time.h>
 
+char* gen_name(){
+    int len = rand() % MAX_FNAME_SIZE;
+    char* s = malloc(sizeof(char) * len);
+    for (int i = 0; i < len; ++i) {
+        s[i] = alphanum[random() % (sizeof(alphanum) - 1)];
+    }
+    s[len] = 0;
+    return s;
+}
+
+size_t gen_size(){
+    float* d = compute_dist(DIST);
+    int i;
+    double x,y;
+    while(1) {
+        x = drand48();
+        i = (int) floor(25.0 * x) + 1;
+        y = 25.0 * x + 1 - i;
+        //printf("%lf : %d : %lf : %lf\n",x, i, y, d[i]);
+        if(y < d[i]) break;
+    }
+    return convert_suffix(sizes[i]);
+}
+
+void delete_entry(struct file_entry* entry){
+    free(entry->fname);
+    free(entry);
+}
+
+struct file_entry* create_entry(){
+    struct file_entry* rv;
+    rv = malloc(sizeof(struct file_entry));
+    rv->fname = gen_name();
+    rv->size = gen_size();
+    return rv;
+}
 
 char* process_unique_dir(lcio_job_t* job){
     char* u_dir;
@@ -49,11 +86,23 @@ void register_engine(lcio_job_t *job){
 void setup_aging(lcio_job_t* job){
     register_engine(job);
     mkdir(job->tmp_dir, S_IRWXU | S_IRWXG);
+    srand48(time(NULL));
+    //printf("%lf : %lf : %lf : %lf\n", drand48(), drand48(), drand48(), drand48());
 }
+
+void print_files(struct file_entry** files){
+    int i;
+
+    for(i = 0; i < 26; i++){
+        printf("%s :: %ld\n", files[i]->fname, files[i]->size);
+    }
+}
+
 
 void age_file_system(lcio_job_t* job){
     char* my_u_dir;
-    struct file_entry* files;
+    struct file_entry **files;
+    int i;
 
     setup_aging(job);
     my_u_dir = process_unique_dir(job);
@@ -61,9 +110,13 @@ void age_file_system(lcio_job_t* job){
     mkdir(my_u_dir, S_IRWXU | S_IRWXG);
     chdir(my_u_dir);
     // in local work directory now.
-
+    // remember, each MPI process has its own directory
     //create list of files
-
+    files = malloc(sizeof(struct file_entry*) * job->num_files_per_proc);
+    for(i=0; i < job->num_files_per_proc; i++){
+        files[i] = create_entry();
+    }
+    print_files(files);
     //write files with sizes pulled from gamma dist
 
     //generate new sizes, and delete/write new files.

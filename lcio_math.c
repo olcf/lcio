@@ -43,8 +43,7 @@ double gen_random_gamma(double k, double theta){
         double u = drand48();
         return gen_random_gamma(1.0 + k, theta) * pow(u, 1.0 / k);
     }
-    static double n1 = 0.0;
-    static int n1 = 0;
+
     double d,c,x,v,u;
 
     d = k - 1.0 / 3.0;
@@ -222,7 +221,7 @@ void report_job_stats(lcio_job_t* job){
 
 
 
-double convert_suffix(char* sz){
+size_t convert_suffix(const char* sz){
     int base;
     unsigned long long exp;
     char scale;
@@ -250,6 +249,32 @@ double convert_suffix(char* sz){
             exp = 1;
     }
 
-    return (double) base * exp;
-
+    return (size_t) base * exp;
 }
+
+
+float* compute_dist(char opt){
+    int i;
+    static int cached = 0;
+    float sum = 0.0;
+    static float *arr;
+
+    if(cached == 0){
+        arr = malloc(sizeof(float) * 26);
+        memcpy(arr, (opt == 'r') ? g_dist_real : g_dist_test, sizeof(float) * 26);
+
+        for(i = 0; i < 26; i++){
+            sum += arr[i];
+        }
+
+        for(i=0; i < 26; i++){
+            arr[i] /= sum;
+        }
+        cached = 1;
+        return arr;
+    }
+    else {
+        return arr;
+    }
+}
+
