@@ -41,13 +41,24 @@ void posix_delete(char* fn, lcio_job_t* job){
     unlink(fn);
 }
 
-void* posix_write(void* fdes, lcio_job_t* job) {
+void *posix_write(void *fdes, lcio_job_t *job, off_t flag) {
     ssize_t *rv;
     unsigned long long i;
     rv = malloc(sizeof(ssize_t));
     *rv = 0;
-    for (i = 0; i < job->blk_sz; i += job->buf_sz){
-        *rv += write(*(int *) fdes, job->buffer, job->buf_sz);
+    if(flag == 0) {
+        for (i = 0; i < job->blk_sz; i += job->buf_sz) {
+            *rv += write(*(int *) fdes, job->buffer, job->buf_sz);
+        }
+    }
+    else {
+        unsigned long long count = flag / job->buf_sz;
+        unsigned long long rem = flag % job->buf_sz;
+        //printf("will take %lld times with %lld left over\n", count, rem);
+        for(i = 0; i < count; i += 1) {
+            *rv += write(*(int *) fdes, job->buffer, job->buf_sz);
+        }
+        *rv += write(*(int *) fdes, job->buffer, rem);
     }
     return (void*)rv;
 }

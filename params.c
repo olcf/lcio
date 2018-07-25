@@ -103,7 +103,7 @@ void fill_jobs(struct conf *cfg, lcio_param_t* params){
         params->jobs[i]->depth = (int)strtol(get_attr("depth", sec), &end, 10);
         params->jobs[i]->clean = (int)strtol(get_attr("clean", sec), &end, 10);
         params->jobs[i]->mean = strtof(get_attr("mean", sec), &end);
-        params->jobs[i]->stdev = strtof(get_attr("stdev", sec), &end);
+        params->jobs[i]->epoch = (int)strtol(get_attr("epoch", sec), &end, 10);
 
         get_buf_sz(get_attr("buffer_size", sec), params->jobs[i], "buffer");
         get_buf_sz(get_attr("block_size", sec), params->jobs[i], "block");

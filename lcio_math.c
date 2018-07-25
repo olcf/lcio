@@ -37,6 +37,10 @@ double gen_rand_normal(double mean, double stddev) {
     }
 }
 
+int gen_rand_uniform(int max){
+    return (int) floor(max * drand48());
+}
+
 double gen_random_gamma(double k, double theta){
     // this is modeled after the GNU Sci lib version
     if(k < 1){
@@ -221,13 +225,13 @@ void report_job_stats(lcio_job_t* job){
 
 
 
-size_t convert_suffix(const char* sz){
-    int base;
-    unsigned long long exp;
+off_t convert_suffix(const char *sz){
+    off_t base;
+    off_t exp;
     char scale;
     int err;
 
-    err = sscanf(sz,"%d%c", &base, &scale);
+    err = sscanf(sz,"%lld%c", &base, &scale);
     if(err != 2){
         ELOCAL("Did not convert block size parameter");
     }
@@ -249,11 +253,11 @@ size_t convert_suffix(const char* sz){
             exp = 1;
     }
 
-    return (size_t) base * exp;
+    return (off_t) base * exp;
 }
 
 
-float* compute_dist(char opt){
+float* compute_dist(){
     int i;
     static int cached = 0;
     float sum = 0.0;
@@ -261,7 +265,7 @@ float* compute_dist(char opt){
 
     if(cached == 0){
         arr = malloc(sizeof(float) * 26);
-        memcpy(arr, (opt == 'r') ? g_dist_real : g_dist_test, sizeof(float) * 26);
+        memcpy(arr, g_dist_test, sizeof(float) * 26);
 
         for(i = 0; i < 26; i++){
             sum += arr[i];

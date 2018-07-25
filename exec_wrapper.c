@@ -6,6 +6,8 @@
 #include "file_tree.h"
 
 void execute_aging(lcio_job_t* job){
+    job->buffer = calloc(job->buf_sz, sizeof(char));
+    memset(job->buffer, 'c', job->buf_sz);
     age_file_system(job);
 }
 

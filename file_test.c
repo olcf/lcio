@@ -88,7 +88,7 @@ void lcio_write(lcio_job_t* job){
         lcio_filename(file, job, i);
         fd = (int*) job->ioengine->open(file, job);
         if(*fd < 0) perror("Write error");
-        job->ioengine->write(fd, job);
+        job->ioengine->write(fd, job, 0);
         if(job->fsync){
             job->ioengine->fsync(fd, job);
         }

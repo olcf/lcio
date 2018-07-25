@@ -70,7 +70,7 @@ typedef struct lcio_job {
     int clean;
     int depth;
     float mean;
-    float stdev;
+    int epoch;
     char mode;
     //======Datatype ends here=============
     int job_number;
@@ -114,7 +114,7 @@ typedef struct lcio_engine {
     void* (*open)(char*, lcio_job_t*);
     void  (*close)(void *, lcio_job_t *);
     void  (*remove)(char*, lcio_job_t *);
-    void* (*write)(void *, lcio_job_t *);
+    void * (*write)(void *, lcio_job_t *, off_t flag);
     void* (*read)(void *, lcio_job_t *);
     void* (*stat)(void *, lcio_job_t *);
     void  (*fsync)(void *, lcio_job_t *);

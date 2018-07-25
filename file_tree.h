@@ -25,10 +25,10 @@ static const char alphanum[] = "abcdefghijklmnopqrstuvwxyz"
 
 struct file_entry{
     char* fname; // this will be the key,
-    size_t size; // if size is 0, it is a dir.
+    off_t size; // if size is 0, it is a dir.
 };
 
-void age_file_system(lcio_job_t* job);
+off_t age_file_system(lcio_job_t* job);
 
 
 #endif //LCIO_FILE_TREE_H

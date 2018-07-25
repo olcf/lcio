@@ -6,6 +6,7 @@
 #define LCIO_LCIO_MATH_H
 
 #include <math.h>
+#include <unistd.h>
 
 #define TIME_ARR_SZ 7
 
@@ -37,6 +38,7 @@ static const char *sizes[26] = {"4k","8k", "16k", "32k", "64k",
 
 double gen_rand_normal(double mean, double stddev);
 double gen_random_gamma(double k, double theta);
+int gen_rand_uniform(int max);
 static void seed_rng(long);
 
 typedef struct lcio_results {
@@ -54,9 +56,9 @@ typedef struct lcio_results {
 
 void divide(double*, double, int);
 
-size_t convert_suffix(const char*);
+off_t convert_suffix(const char *);
 
-float* compute_dist(char opt);
+float* compute_dist();
 
 void process_times(lcio_results_t*, int);
 
