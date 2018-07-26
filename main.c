@@ -51,7 +51,7 @@ int main(int argc, char** argv) {
              MPI_INT, MPI_INT,
              MPI_UNSIGNED_LONG_LONG,
              MPI_UNSIGNED_LONG_LONG,
-             MPI_INT, MPI_INT, MPI_INT, MPI_FLOAT, MPI_FLOAT,
+             MPI_INT, MPI_INT, MPI_INT, MPI_INT, MPI_INT,
              MPI_CHAR};
     MPI_Aint disps[13];
 
@@ -66,9 +66,9 @@ int main(int argc, char** argv) {
     disps[7] = disps[6] + ullextent; //fsync
     disps[8] = disps[7] + iextent; //clean
     disps[9] = disps[8] + iextent; //depth
-    disps[10] = disps[9] + iextent; //mean
-    disps[11] = disps[10] + fextent; //stddev
-    disps[12] = disps[11] + fextent; //mode
+    disps[10] = disps[9] + iextent; //overlap
+    disps[11] = disps[10] + iextent; //epoch
+    disps[12] = disps[11] + iextent; //mode
 
     /*
      * Create datatype for lcio_job_t

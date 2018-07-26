@@ -54,7 +54,6 @@ void *posix_write(void *fdes, lcio_job_t *job, off_t flag) {
     else {
         unsigned long long count = flag / job->buf_sz;
         unsigned long long rem = flag % job->buf_sz;
-        //printf("will take %lld times with %lld left over\n", count, rem);
         for(i = 0; i < count; i += 1) {
             *rv += write(*(int *) fdes, job->buffer, job->buf_sz);
         }

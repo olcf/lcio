@@ -69,7 +69,7 @@ typedef struct lcio_job {
     int fsync;
     int clean;
     int depth;
-    float mean;
+    int overlap;
     int epoch;
     char mode;
     //======Datatype ends here=============

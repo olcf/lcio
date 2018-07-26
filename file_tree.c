@@ -44,16 +44,19 @@ struct file_entry* create_entry(){
     return rv;
 }
 
-char* process_unique_dir(lcio_job_t* job){
+char* process_dir(lcio_job_t *job){
     char* u_dir;
     char* tmp;
     int rank;
 
-    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    MPI_Comm_rank(job->group_comm, &rank);
     tmp = malloc(sizeof(char)*16);
     u_dir = malloc(sizeof(char) * 256);
     strcpy(u_dir, job->tmp_dir);
-    sprintf(tmp, "/proc%d", rank);
+    /*
+     * overlap is the number of processes sharing one directory
+     */
+    sprintf(tmp, "/proc%d", rank / job->overlap);
     strcat(u_dir, tmp);
     free(tmp);
 
@@ -114,12 +117,15 @@ off_t file_tree_update(struct file_entry* file, lcio_job_t* job){
 
 void setup_aging(lcio_job_t* job){
     char* my_u_dir;
+    int rank;
 
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     register_engine(job);
     mkdir(job->tmp_dir, S_IRWXU | S_IRWXG);
-    srand48(time(NULL));
+    srand48(rank);
+    srandom(rank);
 
-    my_u_dir = process_unique_dir(job);
+    my_u_dir = process_dir(job);
 
     mkdir(my_u_dir, S_IRWXU | S_IRWXG);
     chdir(my_u_dir);
@@ -128,7 +134,7 @@ void setup_aging(lcio_job_t* job){
 void teardown_aging(lcio_job_t* job, struct file_entry** files){
     char* my_u_dir;
 
-    my_u_dir = process_unique_dir(job);
+    my_u_dir = process_dir(job);
 
     if(job->clean == 1) {
         int i;
