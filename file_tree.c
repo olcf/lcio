@@ -133,6 +133,7 @@ void setup_aging(lcio_job_t* job){
 
 void teardown_aging(lcio_job_t* job, struct file_entry** files){
     char* my_u_dir;
+    int err;
 
     my_u_dir = process_dir(job);
 
@@ -141,6 +142,10 @@ void teardown_aging(lcio_job_t* job, struct file_entry** files){
         for (i = 0; i < job->num_files_per_proc; i++) {
             file_tree_delete(files[i], job);
         }
+
+        err = chdir("../..");
+        err = rmdir(my_u_dir);
+        err = rmdir(job->tmp_dir);
     }
     job->ioengine = NULL;
     dlclose(job->lib_handle);
@@ -176,7 +181,7 @@ off_t age_file_system(lcio_job_t* job){
         accum += file_tree_write(files[i], job);
     }
 
-    for(j = 0; j < job->epoch; j++){
+    for(j = 0; j < job->ops; j++){
         i = gen_rand_uniform(job->num_files_per_proc);
         printf("selected file %d :: %s\n", i, files[i]->fname);
         accum += file_tree_update(files[i], job);

@@ -68,9 +68,9 @@ typedef struct lcio_job {
     unsigned long long buf_sz;
     int fsync;
     int clean;
-    int depth;
+    int ops;
     int overlap;
-    int epoch;
+    int epochs;
     char mode;
     //======Datatype ends here=============
     int job_number;

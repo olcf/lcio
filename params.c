@@ -100,10 +100,10 @@ void fill_jobs(struct conf *cfg, lcio_param_t* params){
         params->jobs[i]->num_pes = (int)strtol(get_attr("mpi_num_pes", sec), &end, 10);
         params->jobs[i]->num_files = (int)strtol(get_attr("num_files", sec), &end, 10);
         params->jobs[i]->fsync = (int)strtol(get_attr("fsync", sec), &end, 10);
-        params->jobs[i]->depth = (int)strtol(get_attr("depth", sec), &end, 10);
+        params->jobs[i]->ops = (int)strtol(get_attr("ops", sec), &end, 10);
         params->jobs[i]->clean = (int)strtol(get_attr("clean", sec), &end, 10);
         params->jobs[i]->overlap = (int)strtol(get_attr("overlap", sec), &end, 10);
-        params->jobs[i]->epoch = (int)strtol(get_attr("epoch", sec), &end, 10);
+        params->jobs[i]->epochs = (int)strtol(get_attr("epochs", sec), &end, 10);
 
         get_buf_sz(get_attr("buffer_size", sec), params->jobs[i], "buffer");
         get_buf_sz(get_attr("block_size", sec), params->jobs[i], "block");

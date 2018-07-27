@@ -65,9 +65,9 @@ int main(int argc, char** argv) {
     disps[6] = disps[5] + ullextent; //buf_sz
     disps[7] = disps[6] + ullextent; //fsync
     disps[8] = disps[7] + iextent; //clean
-    disps[9] = disps[8] + iextent; //depth
+    disps[9] = disps[8] + iextent; //ops
     disps[10] = disps[9] + iextent; //overlap
-    disps[11] = disps[10] + iextent; //epoch
+    disps[11] = disps[10] + iextent; //epochs
     disps[12] = disps[11] + iextent; //mode
 
     /*
