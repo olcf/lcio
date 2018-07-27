@@ -163,13 +163,14 @@ void print_files(struct file_entry** files, int num){
 off_t age_file_system(lcio_job_t* job){
 
     struct file_entry **files;
-    int i, j;
+    int i, j, k;
     off_t accum = 0;
 
     setup_aging(job);
 
     // in local work directory now.
-    // remember, each MPI process has its own directory
+    // there are $overlap number of processes
+    // sharing the same directory
     //create list of files
     files = malloc(sizeof(struct file_entry*) * job->num_files_per_proc);
     for(i=0; i < job->num_files_per_proc; i++){
@@ -181,10 +182,17 @@ off_t age_file_system(lcio_job_t* job){
         accum += file_tree_write(files[i], job);
     }
 
-    for(j = 0; j < job->ops; j++){
-        i = gen_rand_uniform(job->num_files_per_proc);
-        printf("selected file %d :: %s\n", i, files[i]->fname);
-        accum += file_tree_update(files[i], job);
+    // do a some number of ops
+    // in total, we do ops * epochs number of operations
+    // epochs are controlled by a barrier to force the system to settle before the next
+    // round.
+    for(k = 0; k < job->epochs; k++) {
+        for (j = 0; j < job->ops; j++) {
+            i = gen_rand_uniform(job->num_files_per_proc);
+            printf("selected file %d :: %s\n", i, files[i]->fname);
+            accum += file_tree_update(files[i], job);
+        }
+        MPI_Barrier(job->group_comm);
     }
 
     printf("total bytes written %lld\n", accum);
