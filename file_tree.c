@@ -17,18 +17,19 @@ char* gen_name(){
     return s;
 }
 
-off_t gen_size(){
-    float* d = compute_dist();
+off_t gen_size(lcio_dist_t* dist){
+    float* d = compute_dist(dist);
     int i;
     double x,y;
     while(1) {
         x = drand48();
-        i = (int) floor(25.0 * x) + 1;
-        y = 25.0 * x + 1 - i;
+        i = (int) floor((dist->len -1) * x) + 1;
+        y = (dist->len-1) * x + 1 - i;
         //printf("%lf : %d : %lf : %lf\n",x, i, y, d[i]);
         if(y < d[i]) break;
     }
-    return convert_suffix(sizes[i]);
+    fprintf(stderr, "selected[%d]: size %s\n", i, dist->size[i]);
+    return convert_suffix(dist->size[i]);
 }
 
 void delete_entry(struct file_entry* entry){
@@ -36,11 +37,11 @@ void delete_entry(struct file_entry* entry){
     free(entry);
 }
 
-struct file_entry* create_entry(){
+struct file_entry* create_entry(lcio_dist_t* dist){
     struct file_entry* rv;
     rv = malloc(sizeof(struct file_entry));
     rv->fname = gen_name();
-    rv->size = gen_size();
+    rv->size = gen_size(dist);
     return rv;
 }
 
@@ -109,9 +110,9 @@ void file_tree_delete(struct file_entry* file, lcio_job_t* job){
     job->ioengine->remove(file->fname, job);
 }
 
-off_t file_tree_update(struct file_entry* file, lcio_job_t* job){
+off_t file_tree_update(struct file_entry* file, lcio_job_t* job, lcio_dist_t* dist){
     file_tree_delete(file, job);
-    file->size = gen_size();
+    file->size = gen_size(dist);
     return file_tree_write(file, job);
 }
 
@@ -160,7 +161,7 @@ void print_files(struct file_entry** files, int num){
 }
 
 
-off_t age_file_system(lcio_job_t* job){
+off_t age_file_system(lcio_job_t* job, lcio_dist_t* dist){
 
     struct file_entry **files;
     int i, j, k;
@@ -174,7 +175,7 @@ off_t age_file_system(lcio_job_t* job){
     //create list of files
     files = malloc(sizeof(struct file_entry*) * job->num_files_per_proc);
     for(i=0; i < job->num_files_per_proc; i++){
-        files[i] = create_entry();
+        files[i] = create_entry(dist);
     }
     // write the initial set of files
     print_files(files, job->num_files_per_proc);
@@ -190,7 +191,7 @@ off_t age_file_system(lcio_job_t* job){
         for (j = 0; j < job->ops; j++) {
             i = gen_rand_uniform(job->num_files_per_proc);
             printf("selected file %d :: %s\n", i, files[i]->fname);
-            accum += file_tree_update(files[i], job);
+            accum += file_tree_update(files[i], job, dist);
         }
         MPI_Barrier(job->group_comm);
     }

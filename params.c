@@ -135,3 +135,23 @@ lcio_param_t* fill_parameters(struct conf *cfg){
     fill_stages(cfg, params);
     return params;
 }
+
+
+lcio_dist_t* fill_dist(struct conf *cfg){
+    lcio_dist_t* dist;
+    struct section* sec;
+    char buf[16];
+    int i;
+    char* end;
+
+    dist = malloc(sizeof(lcio_dist_t));
+    if(NULL == (sec = get_section("dist", cfg))) {ELOCAL("no [dist] section");}
+
+    dist->len = sec->num;
+    dist->size = get_keys(sec);
+    dist->array = malloc(sizeof(float) * dist->len);
+    for( i = 0; i < dist->len; i++){
+        dist->array[i] = strtof(get_attr(dist->size[i], sec), &end);
+    }
+    return dist;
+}

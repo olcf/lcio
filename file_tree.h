@@ -28,7 +28,7 @@ struct file_entry{
     off_t size; // if size is 0, it is a dir.
 };
 
-off_t age_file_system(lcio_job_t* job);
+off_t age_file_system(lcio_job_t* job, lcio_dist_t* dist);
 
 
 #endif //LCIO_FILE_TREE_H

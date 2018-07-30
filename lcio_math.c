@@ -233,7 +233,8 @@ off_t convert_suffix(const char *sz){
 
     err = sscanf(sz,"%lld%c", &base, &scale);
     if(err != 2){
-        ELOCAL("Did not convert block size parameter");
+        fprintf(stderr, "read: %s\n", sz);
+        ELOCAL("Did not convert size suffix");
     }
 
     switch(scale){
@@ -257,21 +258,21 @@ off_t convert_suffix(const char *sz){
 }
 
 
-float* compute_dist(){
+float* compute_dist(lcio_dist_t* dist){
     int i;
     static int cached = 0;
     float sum = 0.0;
     static float *arr;
 
     if(cached == 0){
-        arr = malloc(sizeof(float) * 26);
-        memcpy(arr, g_dist_test, sizeof(float) * 26);
+        arr = malloc(sizeof(float) * dist->len);
+        memcpy(arr, dist->array , sizeof(float) * dist->len);
 
-        for(i = 0; i < 26; i++){
+        for(i = 0; i < dist->len; i++){
             sum += arr[i];
         }
 
-        for(i=0; i < 26; i++){
+        for(i=0; i < dist->len; i++){
             arr[i] /= sum;
         }
         cached = 1;

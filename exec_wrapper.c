@@ -5,10 +5,10 @@
 #include "lcio.h"
 #include "file_tree.h"
 
-void execute_aging(lcio_job_t* job){
+void execute_aging(lcio_job_t* job, lcio_dist_t* dist){
     job->buffer = calloc(job->buf_sz, sizeof(char));
     memset(job->buffer, 'c', job->buf_sz);
-    age_file_system(job);
+    age_file_system(job, dist);
 }
 
 

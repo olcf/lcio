@@ -58,8 +58,6 @@ void divide(double*, double, int);
 
 off_t convert_suffix(const char *);
 
-float* compute_dist();
-
 void process_times(lcio_results_t*, int);
 
 
