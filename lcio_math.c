@@ -233,7 +233,7 @@ off_t convert_suffix(const char *sz){
 
     err = sscanf(sz,"%lld%c", &base, &scale);
     if(err != 2){
-        fprintf(stderr, "read: %s\n", sz);
+        printf("read: %s\n", sz);
         ELOCAL("Did not convert size suffix");
     }
 

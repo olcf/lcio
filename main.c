@@ -5,6 +5,7 @@
 #include "lcio.h"
 
 
+
 int main(int argc, char** argv) {
     MPI_Init(&argc, &argv);
 
@@ -110,7 +111,7 @@ int main(int argc, char** argv) {
             exit(1);
         }
         params = fill_parameters(cfg);
-        print_cfg(cfg);
+        //print_cfg(cfg);
 
         name = argv[2];
         dist_cfg = parse_conf_file(name);
@@ -122,7 +123,7 @@ int main(int argc, char** argv) {
             exit(1);
         }
         dist = fill_dist(dist_cfg);
-        print_cfg(dist_cfg);
+        //print_cfg(dist_cfg);
     } else {
         params = malloc(sizeof(lcio_param_t));
         dist = malloc(sizeof(lcio_dist_t));
@@ -172,16 +173,17 @@ int main(int argc, char** argv) {
 
     MPI_Bcast(&(dist->len), 1, MPI_INT, 0, world_comm);
     if(world_rank != 0){
-        dist->size = malloc(sizeof(char*) * dist->len);
-        dist->array = malloc(sizeof(float) * dist->len);
+        dist->size = malloc(dist->len * sizeof(char*));
+        dist->array = malloc(dist->len * sizeof(float));
+        for( i = 0; i < dist->len; i++) {
+            dist->size[i] = malloc(sizeof(char) * 8);
+        }
     }
     MPI_Barrier(world_comm);
-    if(world_rank != 0) {
-        for (i = 0; i < dist->len; i++) {
-            dist->size[i] = calloc(8, sizeof(char));
-            MPI_Bcast(&(dist->size[i]), 8, MPI_CHAR, 0, world_comm);
-            MPI_Bcast(&(dist->array[i]), 1, MPI_FLOAT, 0, world_comm);
-        }
+    for (i = 0; i < dist->len; i++) {
+        //NO NEED TO REFERENCE A CHAR ARRAY
+        MPI_Bcast(dist->size[i], 8, MPI_CHAR, 0, world_comm);
+        MPI_Bcast(&(dist->array[i]), 1, MPI_FLOAT, 0, world_comm);
     }
     MPI_Barrier(world_comm);
     /*

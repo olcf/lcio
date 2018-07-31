@@ -16,7 +16,6 @@
 #include "lcio.h"
 
 #define MAX_FNAME_SIZE 16
-#define DIST 't'
 
 static const char alphanum[] = "abcdefghijklmnopqrstuvwxyz"
                                "ABCDEFGHIJKLMNOPQRSTUVWXYZ"

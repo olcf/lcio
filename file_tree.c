@@ -21,14 +21,17 @@ off_t gen_size(lcio_dist_t* dist){
     float* d = compute_dist(dist);
     int i;
     double x,y;
+    int rank;
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+
     while(1) {
         x = drand48();
-        i = (int) floor((dist->len -1) * x) + 1;
+        i = (int) floor((dist->len - 1) * x) + 1;
         y = (dist->len-1) * x + 1 - i;
         //printf("%lf : %d : %lf : %lf\n",x, i, y, d[i]);
         if(y < d[i]) break;
     }
-    fprintf(stderr, "selected[%d]: size %s\n", i, dist->size[i]);
+
     return convert_suffix(dist->size[i]);
 }
 
@@ -166,19 +169,21 @@ off_t age_file_system(lcio_job_t* job, lcio_dist_t* dist){
     struct file_entry **files;
     int i, j, k;
     off_t accum = 0;
+    int my_rank;
+    MPI_Comm_rank(job->group_comm, &my_rank);
 
     setup_aging(job);
-
     // in local work directory now.
     // there are $overlap number of processes
     // sharing the same directory
     //create list of files
     files = malloc(sizeof(struct file_entry*) * job->num_files_per_proc);
     for(i=0; i < job->num_files_per_proc; i++){
+        //printf("rank[%d]\n", my_rank);
         files[i] = create_entry(dist);
     }
     // write the initial set of files
-    print_files(files, job->num_files_per_proc);
+    //print_files(files, job->num_files_per_proc);
     for(i = 0; i < job->num_files_per_proc; i++){
         accum += file_tree_write(files[i], job);
     }
@@ -190,13 +195,13 @@ off_t age_file_system(lcio_job_t* job, lcio_dist_t* dist){
     for(k = 0; k < job->epochs; k++) {
         for (j = 0; j < job->ops; j++) {
             i = gen_rand_uniform(job->num_files_per_proc);
-            printf("selected file %d :: %s\n", i, files[i]->fname);
+            //printf("selected file %d :: %s\n", i, files[i]->fname);
             accum += file_tree_update(files[i], job, dist);
         }
         MPI_Barrier(job->group_comm);
     }
 
-    printf("total bytes written %lld\n", accum);
+    printf("rank[%d]: total bytes written %lld\n", my_rank, accum);
     teardown_aging(job, files);
     return accum;
 }
