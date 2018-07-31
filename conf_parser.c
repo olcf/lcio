@@ -94,6 +94,18 @@ char* get_attr(char* key, struct section* sec){
     return NULL;
 }
 
+char** get_keys(struct section* sec){
+    int i;
+    char** keys;
+    keys = malloc(sizeof(char*) * sec->num);
+    for(i = 0; i < sec->num; i++){
+        keys[i] = calloc(8, sizeof(char));
+        strcpy(keys[i], sec->attrs[i]->key);
+        //fprintf(stderr, "keys[%i] = %s == %s\n", i, keys[i], sec->attrs[i]->key);
+    }
+    return keys;
+}
+
 struct conf* parse_conf_file(char *name){
     FILE* fd;
     struct conf *cfg;
@@ -105,6 +117,9 @@ struct conf* parse_conf_file(char *name){
     cfg = malloc(sizeof(struct conf));
 
     fd = fopen(name, "r");
+    if(fd == NULL){
+        return NULL;
+    }
     int num_sections = 0;
 
     while(fgets(buf, 128, fd) != NULL){

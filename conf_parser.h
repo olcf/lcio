@@ -33,5 +33,6 @@ struct conf* parse_conf_file(char *);
 void print_cfg(struct conf*);
 struct section* get_section(char*, struct conf*);
 char* get_attr(char* key, struct section* sec);
+char** get_keys(struct section* sec);
 
 #endif //LCIO_CONF_PARSER_H

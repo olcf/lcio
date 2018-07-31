@@ -42,15 +42,24 @@ void mpiio_delete(char* fn, lcio_job_t* job){
     MPI_File_delete(fn, job->info);
 }
 
-void* mpiio_write(void* fdes, lcio_job_t* job) {
+void *mpiio_write(void *fdes, lcio_job_t *job, off_t flag) {
     MPI_Status *stat;
     unsigned long long i;
     stat = malloc(sizeof(MPI_Status));
-    for (i = 0; i < job->blk_sz; i += job->buf_sz){
+    if(flag == 0) {
+        for (i = 0; i < job->blk_sz; i += job->buf_sz) {
+            MPI_File_write(*(MPI_File *) fdes, job->buffer,
+                           (int) job->buf_sz,
+                           MPI_CHAR,
+                           stat);
+        }
+    } else {
+
         MPI_File_write(*(MPI_File *) fdes, job->buffer,
-                       (int) job->buf_sz,
-                       MPI_CHAR,
-                       stat);
+                           (int) job->buf_sz,
+                           MPI_CHAR,
+                           stat);
+
     }
     return (void*) stat;
 }

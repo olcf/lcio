@@ -37,14 +37,17 @@ double gen_rand_normal(double mean, double stddev) {
     }
 }
 
+int gen_rand_uniform(int max){
+    return (int) floor(max * drand48());
+}
+
 double gen_random_gamma(double k, double theta){
     // this is modeled after the GNU Sci lib version
     if(k < 1){
         double u = drand48();
         return gen_random_gamma(1.0 + k, theta) * pow(u, 1.0 / k);
     }
-    static double n1 = 0.0;
-    static int n1 = 0;
+
     double d,c,x,v,u;
 
     d = k - 1.0 / 3.0;
@@ -222,15 +225,16 @@ void report_job_stats(lcio_job_t* job){
 
 
 
-double convert_suffix(char* sz){
-    int base;
-    unsigned long long exp;
+off_t convert_suffix(const char *sz){
+    off_t base;
+    off_t exp;
     char scale;
     int err;
 
-    err = sscanf(sz,"%d%c", &base, &scale);
+    err = sscanf(sz,"%lld%c", &base, &scale);
     if(err != 2){
-        ELOCAL("Did not convert block size parameter");
+        printf("read: %s\n", sz);
+        ELOCAL("Did not convert size suffix");
     }
 
     switch(scale){
@@ -250,6 +254,32 @@ double convert_suffix(char* sz){
             exp = 1;
     }
 
-    return (double) base * exp;
-
+    return (off_t) base * exp;
 }
+
+
+float* compute_dist(lcio_dist_t* dist){
+    int i;
+    static int cached = 0;
+    float sum = 0.0;
+    static float *arr;
+
+    if(cached == 0){
+        arr = malloc(sizeof(float) * dist->len);
+        memcpy(arr, dist->array , sizeof(float) * dist->len);
+
+        for(i = 0; i < dist->len; i++){
+            sum += arr[i];
+        }
+
+        for(i=0; i < dist->len; i++){
+            arr[i] /= sum;
+        }
+        cached = 1;
+        return arr;
+    }
+    else {
+        return arr;
+    }
+}
+

@@ -5,6 +5,7 @@
 #include "lcio.h"
 
 
+
 int main(int argc, char** argv) {
     MPI_Init(&argc, &argv);
 
@@ -21,6 +22,7 @@ int main(int argc, char** argv) {
     lcio_job_t* myjob;
     lcio_param_t *params;
     lcio_stage_t* mystage;
+    lcio_dist_t* dist;
     int num_jobs;
 
     MPI_Datatype MPI_LCIO_JOB;
@@ -51,7 +53,7 @@ int main(int argc, char** argv) {
              MPI_INT, MPI_INT,
              MPI_UNSIGNED_LONG_LONG,
              MPI_UNSIGNED_LONG_LONG,
-             MPI_INT, MPI_INT, MPI_INT, MPI_FLOAT, MPI_FLOAT,
+             MPI_INT, MPI_INT, MPI_INT, MPI_INT, MPI_INT,
              MPI_CHAR};
     MPI_Aint disps[13];
 
@@ -65,10 +67,10 @@ int main(int argc, char** argv) {
     disps[6] = disps[5] + ullextent; //buf_sz
     disps[7] = disps[6] + ullextent; //fsync
     disps[8] = disps[7] + iextent; //clean
-    disps[9] = disps[8] + iextent; //depth
-    disps[10] = disps[9] + iextent; //mean
-    disps[11] = disps[10] + fextent; //stddev
-    disps[12] = disps[11] + fextent; //mode
+    disps[9] = disps[8] + iextent; //ops
+    disps[10] = disps[9] + iextent; //overlap
+    disps[11] = disps[10] + iextent; //epochs
+    disps[12] = disps[11] + iextent; //mode
 
     /*
      * Create datatype for lcio_job_t
@@ -98,17 +100,38 @@ int main(int argc, char** argv) {
     if( world_rank == 0) {
         char *name;
         struct conf *cfg;
+        struct conf *dist_cfg;
         name = argv[1];
         cfg = parse_conf_file(name);
+        if(cfg == NULL){
+            perror("fopen");
+            fprintf(stderr, "Configuration file not found.\n"
+                            "Config file should be first command line argument.\n");
+            MPI_Abort(world_comm, 1);
+            exit(1);
+        }
         params = fill_parameters(cfg);
-        print_cfg(cfg);
+        //print_cfg(cfg);
+
+        name = argv[2];
+        dist_cfg = parse_conf_file(name);
+        if(dist_cfg == NULL){
+            perror("fopen");
+            fprintf(stderr, "Distribution file not found.\n"
+                            "Dist file should be second command line argument.\n");
+            MPI_Abort(world_comm, 1);
+            exit(1);
+        }
+        dist = fill_dist(dist_cfg);
+        //print_cfg(dist_cfg);
     } else {
         params = malloc(sizeof(lcio_param_t));
+        dist = malloc(sizeof(lcio_dist_t));
     }
 
     /*
      * sorta nasty but other, more slick methods kept giving
-     * me segfaults. Likely due to how the MPI_datatype isnt
+     * me segfaults. Likely due to how the MPI_datatype isn't
      * a full struct.
      */
     MPI_Bcast(&(params->num_jobs), 1, MPI_INT, 0, world_comm);
@@ -144,7 +167,27 @@ int main(int argc, char** argv) {
 
 
     /*
-     * at this point, all pes have their work assignments
+     * distribution of job config, now need to parcel out the
+     * file count distribution
+     */
+
+    MPI_Bcast(&(dist->len), 1, MPI_INT, 0, world_comm);
+    if(world_rank != 0){
+        dist->size = malloc(dist->len * sizeof(char*));
+        dist->array = malloc(dist->len * sizeof(float));
+        for( i = 0; i < dist->len; i++) {
+            dist->size[i] = malloc(sizeof(char) * 8);
+        }
+    }
+    MPI_Barrier(world_comm);
+    for (i = 0; i < dist->len; i++) {
+        //NO NEED TO REFERENCE A CHAR ARRAY
+        MPI_Bcast(dist->size[i], 8, MPI_CHAR, 0, world_comm);
+        MPI_Bcast(&(dist->array[i]), 1, MPI_FLOAT, 0, world_comm);
+    }
+    MPI_Barrier(world_comm);
+    /*
+     * At this point, all pes have their work assignments and needed data.
      * Now, we start moving through the stages.
      * Each stage will setup/teardown its own group comm.
      */
@@ -184,7 +227,7 @@ int main(int argc, char** argv) {
 
             MPI_Barrier(world_comm);
             if(!(strcmp(myjob->type, "file_tree"))){
-                execute_aging(myjob);
+                execute_aging(myjob, dist);
             }
             else{
                 execute_job(myjob);

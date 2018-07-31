@@ -13,8 +13,9 @@
 #include <mpi.h>
 #include <string.h>
 #include "lcio_math.h"
-
 #include "conf_parser.h"
+
+#define MAX_JOBS 31
 
 #define ERR(MSG) do {                           \
     fprintf(stderr, "%s:%d -- ERROR:%s (%d: %s)\n", \
@@ -48,6 +49,13 @@
  * If this is modified, need to modify [params.c]
  */
 typedef struct lcio_engine lcio_engine_t;
+
+typedef struct lcio_dist {
+    int len;
+    char** size;
+    float* array;
+} lcio_dist_t;
+
 /*
  * IMPORTANT: The order here matters since this struct is
  * compressed into an MPI datatype for broadcasting.
@@ -68,9 +76,9 @@ typedef struct lcio_job {
     unsigned long long buf_sz;
     int fsync;
     int clean;
-    int depth;
-    float mean;
-    float stdev;
+    int ops;
+    int overlap;
+    int epochs;
     char mode;
     //======Datatype ends here=============
     int job_number;
@@ -87,9 +95,10 @@ typedef struct lcio_job {
 
 } lcio_job_t;
 
+
 typedef struct lcio_stage {
     int num_jobs_in_stage;
-    int jobs_in_stage[31];
+    int jobs_in_stage[MAX_JOBS];
 } lcio_stage_t;
 
 typedef struct lcio_param {
@@ -114,7 +123,7 @@ typedef struct lcio_engine {
     void* (*open)(char*, lcio_job_t*);
     void  (*close)(void *, lcio_job_t *);
     void  (*remove)(char*, lcio_job_t *);
-    void* (*write)(void *, lcio_job_t *);
+    void* (*write)(void *, lcio_job_t *, off_t flag);
     void* (*read)(void *, lcio_job_t *);
     void* (*stat)(void *, lcio_job_t *);
     void  (*fsync)(void *, lcio_job_t *);
@@ -128,12 +137,14 @@ void file_test_full(lcio_job_t *);
 void file_test_light(lcio_job_t *);
 
 lcio_param_t* fill_parameters(struct conf*);
+lcio_dist_t* fill_dist(struct conf*);
 void print_params(lcio_param_t*);
 
 double get_time(void);
 double elapsed_time(double, double);
 void execute_job(lcio_job_t* job);
-void execute_aging(lcio_job_t* job);
+void execute_aging(lcio_job_t* job, lcio_dist_t* dist);
 void report_job_stats(lcio_job_t*);
 void process_bandwidths(lcio_job_t*);
+float* compute_dist(lcio_dist_t* );
 #endif //LCIO_LCIO_H

@@ -100,10 +100,10 @@ void fill_jobs(struct conf *cfg, lcio_param_t* params){
         params->jobs[i]->num_pes = (int)strtol(get_attr("mpi_num_pes", sec), &end, 10);
         params->jobs[i]->num_files = (int)strtol(get_attr("num_files", sec), &end, 10);
         params->jobs[i]->fsync = (int)strtol(get_attr("fsync", sec), &end, 10);
-        params->jobs[i]->depth = (int)strtol(get_attr("depth", sec), &end, 10);
+        params->jobs[i]->ops = (int)strtol(get_attr("ops", sec), &end, 10);
         params->jobs[i]->clean = (int)strtol(get_attr("clean", sec), &end, 10);
-        params->jobs[i]->mean = strtof(get_attr("mean", sec), &end);
-        params->jobs[i]->stdev = strtof(get_attr("stdev", sec), &end);
+        params->jobs[i]->overlap = (int)strtol(get_attr("overlap", sec), &end, 10);
+        params->jobs[i]->epochs = (int)strtol(get_attr("epochs", sec), &end, 10);
 
         get_buf_sz(get_attr("buffer_size", sec), params->jobs[i], "buffer");
         get_buf_sz(get_attr("block_size", sec), params->jobs[i], "block");
@@ -134,4 +134,24 @@ lcio_param_t* fill_parameters(struct conf *cfg){
     fill_jobs(cfg, params);
     fill_stages(cfg, params);
     return params;
+}
+
+
+lcio_dist_t* fill_dist(struct conf *cfg){
+    lcio_dist_t* dist;
+    struct section* sec;
+    char buf[16];
+    int i;
+    char* end;
+
+    dist = malloc(sizeof(lcio_dist_t));
+    if(NULL == (sec = get_section("dist", cfg))) {ELOCAL("no [dist] section");}
+
+    dist->len = sec->num;
+    dist->size = get_keys(sec);
+    dist->array = malloc(sizeof(float) * dist->len);
+    for( i = 0; i < dist->len; i++){
+        dist->array[i] = strtof(get_attr(dist->size[i], sec), &end);
+    }
+    return dist;
 }
