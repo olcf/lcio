@@ -14,30 +14,35 @@
 
 \begin{document}
 \maketitle
-%\section{}
-%\subsection{}
 
 \begin{abstract}
 Judging how a filesystem's performance changes over time is not a trivial task. There have been
 several different approaches in recent history. `Impressions' (cite) is a tool that statically
 generates statistically realistic file system images. This is useful for seeing how the 
 file and metadata structure impact the performance of tools (e.g. `find') that rely on
-traversing such a structure. 
-A newer approach is `Geriatrix' (cite), which brings in a time component to the 
+traversing such a structure. However, Impressions does not address issues such as free space
+fragmentation that comes with usage over time. 
+
+A newer approach is `Geriatrix' (cite), which brings in this time component to the 
 equation. Geriatrix queues operations on the filesystem to approach both a file size 
 distribution and a relative 
 time distribution. This takes into account the innate fragmentation of a filesystem 
 (both file and free space fragmentation) induced by usage over time as a function of how long 
 a file has existed on the system.
+
 A key drawback for both of these tools is time taken by each of these tools. Impressions took
 30 minutes to generate a file system image of 12 GB with 52,000 files and 4000 dirs. Geriatrix
 takes a variable amount of time dependent upon the age distribution used, from a minimum of 27 minutes
 for a 50 GB image to over 7 hours for an other 50 GB image with a different distribution. For one 
 distribution, the tool did not converge in a reasonable time. 
+
 HPC filesystems average between 5-8 orders of magnitude greater than the biggest images created by 
 either of these tools. Lcio attempts to bridge the gap between these heavily realistic tools and a 
-tool usable on large parallel filesystems. 
+tool feasible on large parallel filesystems. 
 \end{abstract}
+
+\section{Introduction}
+
 
 
 \end{document}  
