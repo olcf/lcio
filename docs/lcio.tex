@@ -1,0 +1,31 @@
+\documentclass[11pt]{amsart}
+\usepackage{geometry}                % See geometry.pdf to learn the layout options. There are lots.
+\geometry{letterpaper}                   % ... or a4paper or a5paper or ... 
+%\geometry{landscape}                % Activate for for rotated page geometry
+%\usepackage[parfill]{parskip}    % Activate to begin paragraphs with an empty line rather than an indent
+\usepackage{graphicx}
+\usepackage{amssymb}
+\usepackage{epstopdf}
+\DeclareGraphicsRule{.tif}{png}{.png}{`convert #1 `dirname #1`/`basename #1 .tif`.png}
+
+\title{LCIO: Large Scale Filesystem Aging}
+\author{Authors}
+%\date{}                                           % Activate to display a given date or no date
+
+\begin{document}
+\maketitle
+%\section{}
+%\subsection{}
+
+\begin{abstract}
+Judging how a filesystem's performance changes over time is not a trivial task. There have been
+several different approaches in recent history. `Impressions' <cite> is a tool that statically
+generates file system images, useful for seeing how metadata performance changes with respect to 
+utilization. A newer approach is `Geriatrix' <cite>, which brings in a time component to the 
+equation. Geriatrix queues operations to approach both a file size distribution and a relative 
+time distribution. This takes into account the innate fragmentation of a filesystem induced by 
+usage over time. 
+\end{abstract}
+
+
+\end{document}  
