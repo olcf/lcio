@@ -8,9 +8,13 @@
 #include <time.h>
 
 char* gen_name(){
-    long len = random() % MAX_FNAME_SIZE;
+    long len;
+    do {
+        len = random() % MAX_FNAME_SIZE;
+    }while(len == 0);
     char* s = malloc(sizeof(char) * len);
-    for (int i = 0; i < len; ++i) {
+    int i;
+    for (i = 0; i < len; ++i) {
         s[i] = alphanum[random() % (sizeof(alphanum) - 1)];
     }
     s[len] = 0;
@@ -28,7 +32,6 @@ off_t gen_size(lcio_dist_t* dist){
         x = drand48();
         i = (int) floor((dist->len - 1) * x) + 1;
         y = (dist->len-1) * x + 1 - i;
-        //printf("%lf : %d : %lf : %lf\n",x, i, y, d[i]);
         if(y < d[i]) break;
     }
 
@@ -163,6 +166,15 @@ void print_files(struct file_entry** files, int num){
     }
 }
 
+off_t calc_sizes(struct file_entry** files, int num){
+    int i;
+    off_t total_sz = 0;
+    for(i = 0; i < num; i++){
+        total_sz += files[i]->size;
+    }
+    return total_sz;
+}
+
 
 off_t age_file_system(lcio_job_t* job, lcio_dist_t* dist){
 
@@ -179,15 +191,13 @@ off_t age_file_system(lcio_job_t* job, lcio_dist_t* dist){
     //create list of files
     files = malloc(sizeof(struct file_entry*) * job->num_files_per_proc);
     for(i=0; i < job->num_files_per_proc; i++){
-        //printf("rank[%d]\n", my_rank);
         files[i] = create_entry(dist);
     }
     // write the initial set of files
-    //print_files(files, job->num_files_per_proc);
     for(i = 0; i < job->num_files_per_proc; i++){
         accum += file_tree_write(files[i], job);
     }
-
+    printf("rank[%d] :: file_sizes == %lld\n", my_rank, calc_sizes(files, job->num_files_per_proc));
     // do a some number of ops
     // in total, we do ops * epochs number of operations
     // epochs are controlled by a barrier to force the system to settle before the next
@@ -198,6 +208,7 @@ off_t age_file_system(lcio_job_t* job, lcio_dist_t* dist){
             //printf("selected file %d :: %s\n", i, files[i]->fname);
             accum += file_tree_update(files[i], job, dist);
         }
+        printf("rank[%d] :: file_sizes == %lld\n", my_rank, calc_sizes(files, job->num_files_per_proc));
         MPI_Barrier(job->group_comm);
     }
 

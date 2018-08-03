@@ -235,6 +235,7 @@ int main(int argc, char** argv) {
         }
         MPI_Barrier(world_comm);
     }
+    MPI_Barrier(world_comm);
     MPI_Finalize();
     exit(0);
 }
