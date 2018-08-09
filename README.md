@@ -47,7 +47,7 @@ clean = 0 | 1, clean 'tmp_dir' after job is finished
 are:  
 type = 'rw'  
 mode = 'U' | 'S', (unique, shared) process per dir or all processes in same dir   
-tmp_dir = directory to write into 
+tmp_dir = directory to write into  
 buffer_size = size type, size of buffer used to fill files of size 'block_size' 
 engine = 'posix' or 'mpiio'  
 mpi_num_pes  = int  
