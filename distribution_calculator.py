@@ -58,12 +58,20 @@ def calc_params(dist_file):
 
     bins = list(map(convert_suffix, bin_names))
     sum_counts = sum(counts)
-    raw_dist = list(map(lambda x: x/sum_counts, counts))
-    zipped_dist = zip(bins, raw_dist)
-    dist = list(itertools.starmap(lambda x,y: x*y, zipped_dist))
-    e_val = sum(dist)
 
-    return round(e_val)
+    raw_dist = list(map(lambda x: x/sum_counts, counts))
+    bins_sqd = list(map(lambda x: x * x, bins))
+
+    zipped_dist = zip(bins, raw_dist)
+    zipped_dist_sqd = zip(bins_sqd, raw_dist)
+
+    dist = list(itertools.starmap(lambda x, y: x*y, zipped_dist))
+    dist_sqd = list(itertools.starmap(lambda x, y: x*y, zipped_dist_sqd))
+
+    e_val = sum(dist)
+    e_sqd = sum(dist_sqd)
+
+    return round(e_val), round(e_sqd - (e_val * e_val))
 
 
 def main(argv):
@@ -72,8 +80,9 @@ def main(argv):
     parser.add_argument('--file', metavar="DIST-FILE", nargs=1, type=str, help="distribution ini file from fprof")
     args = parser.parse_args(argv)
 
-    e_val = calc_params(args.file[0])
+    e_val, var = calc_params(args.file[0])
     print("Expected size per file: ", convert_val(e_val))
+    # print("Variance: ", convert_val(var))
     num_files = int(input("Num Files? "))
     epochs = int(input("Num Epochs? "))
     ops = int(input("Num Ops? "))
