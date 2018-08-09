@@ -4,8 +4,8 @@ lcio is designed to synthetically age and test large
 parallel filesystems (Luster, GPFS, Ceph, etc)
 
 ## Requirements
-Cmake > 3.0 
-MPI > 3.0 (tested with Open MPI 1.10 and 3.1, 1.10 has some issues that were fixed in later versions)
+Cmake > 3.0  
+MPI > 3.0 (tested with Open MPI 1.10 and 3.1, 1.10 has some issues that were fixed in later versions)  
 C11 compatible compiler  
 
 ---
