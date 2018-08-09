@@ -21,8 +21,8 @@ benchmark to see how the performance has changed, then another aging step, etc.
 
 
 ## Quick start  
-The [config.ini](config.ini) file contains some example configurations of both types of runs. 
-The [distribution.ini](distribution.ini) file has an example file size distribution. 
+The [example config](config_example.ini) file contains some example configurations of both types of runs. 
+The [example dist](dist_example.ini) file has an example file size distribution. 
 
 ## Job types
 A 'size type' looks like \[4k, 128M, 23G, 4t, etc\] (upper or lower case k,m,g,t).  

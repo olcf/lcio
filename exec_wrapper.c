@@ -24,9 +24,7 @@ void execute_job(lcio_job_t* job){
     job->buffer = calloc(job->buf_sz, sizeof(char));
     memset(job->buffer, 'c', job->buf_sz);
 
-    /*
-     * IOPS will be back calculated from the timings
-     */
+
     job->job_timings = malloc(sizeof(lcio_results_t));
     job->job_timings->max_times = calloc(TIME_ARR_SZ, sizeof(double));
     job->job_timings->min_times = calloc(TIME_ARR_SZ, sizeof(double));
@@ -46,10 +44,7 @@ void execute_job(lcio_job_t* job){
         job->job_results->avg_bandwidths = calloc(TIME_ARR_SZ, sizeof(double));
         job->job_results->var_bandwidths = calloc(TIME_ARR_SZ, sizeof(double));
     };
-
-    if(rank == 0){
-        printf("blk_sz: %lld  --  buf_sz %lld\n", job->blk_sz, job->buf_sz);
-    }
+    MPI_Barrier(job->group_comm);
 
     if(!strcmp(job->type, "rw"))file_test_full(job);
     if(!strcmp(job->type, "rw_light"))file_test_light(job);
@@ -78,11 +73,11 @@ void execute_job(lcio_job_t* job){
     MPI_Reduce(job->job_timings->variances, job->job_results->variances,
                TIME_ARR_SZ, MPI_DOUBLE, MPI_SUM, 0, job->group_comm);
 
+    MPI_Barrier(job->group_comm);
     if(rank == 0){
-        divide(job->job_results->avg_times, group_sz, TIME_ARR_SZ);
-        divide(job->job_results->variances, group_sz, TIME_ARR_SZ);
+        divide(job->job_results->avg_times, (double)group_sz, TIME_ARR_SZ);
+        divide(job->job_results->variances, (double)group_sz, TIME_ARR_SZ);
         report_job_stats(job);
     }
-
-
+    MPI_Barrier(job->group_comm);
 }

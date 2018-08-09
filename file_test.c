@@ -179,11 +179,11 @@ void file_test_full(lcio_job_t *job){
         times[1] = elapsed_time(t2, t1);
         //print_log(times[i], "write", rank);
 
-
         t1 = get_time();
         lcio_stat(job);
         t2 = get_time();
         times[2] = elapsed_time(t2, t1);
+
 
         t1 = get_time();
         lcio_read(job);
@@ -198,10 +198,12 @@ void file_test_full(lcio_job_t *job){
         }
 
         job->job_timings->raw_times[iter] = times;
+        MPI_Barrier(job->group_comm);
 
     }
 
     lcio_teardown(job);
+    MPI_Barrier(job->group_comm);
 }
 
 void file_test_light(lcio_job_t *job){
@@ -240,7 +242,8 @@ void file_test_light(lcio_job_t *job){
 
         job->job_timings->raw_times[iter] = times;
         //print_log(final, "final", rank);
+        MPI_Barrier(job->group_comm);
     }
     lcio_teardown(job);
-
+    MPI_Barrier(job->group_comm);
 }

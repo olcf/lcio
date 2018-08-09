@@ -73,7 +73,7 @@ void divide(double* arr, double divisor, int len){
     int i;
 
     for(i=0; i < len; i++){
-        arr[i] = arr[i] / divisor;
+        arr[i] /= divisor;
     }
 }
 
@@ -137,7 +137,7 @@ double stddev(const double* arr, int num_runs){
 double calc_bw(double time, lcio_job_t* job){
     // 'time' is the sum of all the individual process times
     // so, divide by the total number of files.
-    double rate = (double)job->blk_sz * (double)job->num_files / (time * (1 << 20));
+    double rate = ((double)job->blk_sz * (double)job->num_files) / (time * (1 << 20));
     // this is in MiB/sec
     return isinf(rate) ? 0 : rate;
 }
@@ -149,8 +149,6 @@ double calc_bw(double time, lcio_job_t* job){
  *  2: stat
  *  3: read
  *  4: remove
- *  5: tree create
- *  6: tree remove
  *
  *  so. e.g. max_times[0] is the max of the create operations
  */
@@ -162,16 +160,14 @@ void process_times(lcio_results_t* res, int num_runs){
     tmp_array = malloc(sizeof(double) * num_runs);
 
     for(j=0; j < TIME_ARR_SZ; j++){
-        for(i=0; i < num_runs; i++){
+        for(i=0; i < num_runs; i++) {
             tmp_array[i] = res->raw_times[i][j];
         }
-
         res->max_times[j] = max(tmp_array, num_runs);
         res->min_times[j] = min(tmp_array, num_runs);
         res->avg_times[j] = avg(tmp_array, num_runs);
         res->variances[j] = variance(tmp_array,num_runs);
     }
-
 }
 
 void process_bandwidths(lcio_job_t* job){
@@ -186,11 +182,11 @@ void process_bandwidths(lcio_job_t* job){
 }
 
 void report_job_stats(lcio_job_t* job){
-    const char header[]="==========================================================================\n"
-                         "%12s    %12s  %12s  %12s  %12s\n";
-    const char lines[] ="--------------------------------------------------------------------------\n";
-    const char fmt[] =  "%12s :: %12.8lf  %12.8lf  %12.8lf  %12.8lf\n";
-    const char fmt2[] = "%12s :: %12.4lf  %12.4lf  %12.4lf  %12.4lf\n";
+    const char header[]="===============================================================================\n"
+                         "%17s    %12s  %12s  %12s  %12s\n";
+    const char lines[] ="-------------------------------------------------------------------------------\n";
+    const char fmt[] =  "%17s :: %12.8lf  %12.8lf  %12.8lf  %12.8lf\n";
+    const char fmt2[] = "%17s :: %12.4lf  %12.4lf  %12.4lf  %12.4lf\n";
 
     int i;
     process_bandwidths(job);
@@ -199,7 +195,7 @@ void report_job_stats(lcio_job_t* job){
            job->type, job->num_pes,job->mode, job->engine);
     printf("Results of %d runs\n\n", job->num_runs);
 
-    printf(header, "Times", "Max", "Min", "Avg", "Stddev");
+    printf(header, "Times (s)", "Max", "Min", "Avg", "Stddev");
     printf(lines);
     for (i = 0; i < TIME_ARR_SZ; i++) {
 
@@ -211,7 +207,7 @@ void report_job_stats(lcio_job_t* job){
     }
     printf(lines);
     printf("\n");
-    printf(header, "Bandwidth", "Max", "Min", "Avg", "Stddev");
+    printf(header, "Bandwth (MiB/s)", "Max", "Min", "Avg", "Stddev");
     printf(lines);
     for (i = 0; i < TIME_ARR_SZ; i++) {
         printf(fmt2, g_op_indicies[i],

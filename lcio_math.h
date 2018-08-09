@@ -8,14 +8,12 @@
 #include <math.h>
 #include <unistd.h>
 
-#define TIME_ARR_SZ 7
+#define TIME_ARR_SZ 5
 
 static const char* g_op_indicies[TIME_ARR_SZ] = {"create",
                                    "write",
                                     "stat",
-                                    "read","remove",
-                                    "tree create",
-                                    "tree_remove"};
+                                    "read","remove"};
 
 static const float g_dist_real[26] = {45.00, 13.00, 21.00, 16.00, 11.00,
                                5.00, 25.00, 11.00, 26.00, 22.00,

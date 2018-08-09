@@ -165,8 +165,7 @@ int main(int argc, char** argv) {
         cfg = parse_conf_file(opts->cfg_fname);
         if(cfg == NULL){
             perror("fopen");
-            fprintf(stderr, "Configuration file not found.\n"
-                            "Config file should be first command line argument.\n");
+            fprintf(stderr, "Configuration file not found.\n");
             MPI_Abort(world_comm, 1);
             exit(1);
         }
@@ -177,8 +176,7 @@ int main(int argc, char** argv) {
         dist_cfg = parse_conf_file(opts->dist_fname);
         if(dist_cfg == NULL){
             perror("fopen");
-            fprintf(stderr, "Distribution file not found.\n"
-                            "Dist file should be second command line argument.\n");
+            fprintf(stderr, "Distribution file not found.\n");
             MPI_Abort(world_comm, 1);
             exit(1);
         }
@@ -195,7 +193,6 @@ int main(int argc, char** argv) {
      * a full struct.
      */
     MPI_Bcast(&(params->num_jobs), 1, MPI_INT, 0, world_comm);
-    MPI_Bcast(&(params->num_runs), 1, MPI_INT, 0, world_comm);
     MPI_Bcast(&(params->num_stages), 1, MPI_INT, 0, world_comm);
 
     if(world_rank != 0){
@@ -253,9 +250,10 @@ int main(int argc, char** argv) {
      */
     int nstage;
     for(nstage=0; nstage < params->num_stages; nstage++) {
-        /*/
-         * change this to use MPI_Group_incl_create
-         */
+        if(world_rank == 0){
+            printf("\nStage %d\n", nstage);
+        }
+
         mystage = params->stages[nstage];
         res = 0;
         for (i = 0; i < mystage->num_jobs_in_stage; i++) {
@@ -276,20 +274,20 @@ int main(int argc, char** argv) {
 
         MPI_Comm_size(group_comm, &grp_sz);
         MPI_Comm_rank(group_comm, &my_rank);
-        printf("stage:%d  wr:%d  gr: %d  color %d \n", nstage, world_rank, my_rank, color);
+        //printf("stage:%d  wr:%d  gr: %d  color %d \n", nstage, world_rank, my_rank, color);
 
 
         if( color > -1) {
             myjob = params->jobs[mystage->jobs_in_stage[color]];
             myjob->group_comm = group_comm;
             myjob->num_files_per_proc = myjob->num_files / grp_sz;
-            myjob->num_runs = params->num_runs;
 
             MPI_Barrier(world_comm);
             if(!(strcmp(myjob->type, "file_tree"))){
                 execute_aging(myjob, dist);
             }
             else{
+                myjob->num_runs = myjob->ops;
                 execute_job(myjob);
             }
         }
