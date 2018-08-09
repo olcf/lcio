@@ -189,7 +189,7 @@ void report_job_stats(lcio_job_t* job){
     const char header[]="==========================================================================\n"
                          "%12s    %12s  %12s  %12s  %12s\n";
     const char lines[] ="--------------------------------------------------------------------------\n";
-    const char fmt[] =  "%12s ::  %.8lf  %.8lf  %.8lf  %.8lf\n";
+    const char fmt[] =  "%12s :: %12.8lf  %12.8lf  %12.8lf  %12.8lf\n";
     const char fmt2[] = "%12s :: %12.4lf  %12.4lf  %12.4lf  %12.4lf\n";
 
     int i;
@@ -199,9 +199,9 @@ void report_job_stats(lcio_job_t* job){
            job->type, job->num_pes,job->mode, job->engine);
     printf("Results of %d runs\n\n", job->num_runs);
 
-    printf(header, "", "Max", "Min", "Avg", "Stddev");
+    printf(header, "Times", "Max", "Min", "Avg", "Stddev");
     printf(lines);
-    for (i = 0; i < TIME_ARR_SZ; i ++) {
+    for (i = 0; i < TIME_ARR_SZ; i++) {
 
         printf(fmt, g_op_indicies[i],
                job->job_results->max_times[i],
@@ -210,7 +210,10 @@ void report_job_stats(lcio_job_t* job){
                sqrt(job->job_results->variances[i]));
     }
     printf(lines);
-    for (i = 0; i < TIME_ARR_SZ; i ++) {
+    printf("\n");
+    printf(header, "Bandwidth", "Max", "Min", "Avg", "Stddev");
+    printf(lines);
+    for (i = 0; i < TIME_ARR_SZ; i++) {
         printf(fmt2, g_op_indicies[i],
                job->job_results->max_bandwidths[i],
                job->job_results->min_bandwidths[i],

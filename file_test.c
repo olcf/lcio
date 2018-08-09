@@ -180,23 +180,23 @@ void file_test_full(lcio_job_t *job){
         //print_log(times[i], "write", rank);
 
 
-        //t1 = get_time();
-        //lcio_stat(job);
-        //t2 = get_time();
-        //times[2] = elapsed_time(t2, t1);
+        t1 = get_time();
+        lcio_stat(job);
+        t2 = get_time();
+        times[2] = elapsed_time(t2, t1);
 
         t1 = get_time();
         lcio_read(job);
         t2 = get_time();
         times[3] = elapsed_time(t2, t1);
-/*
+
         if(job->clean == 1) {
             t1 = get_time();
             lcio_remove(job);
             t2 = get_time();
             times[4] = elapsed_time(t2, t1);
         }
-*/
+
         job->job_timings->raw_times[iter] = times;
 
     }

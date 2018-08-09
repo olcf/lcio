@@ -76,7 +76,7 @@ void register_engine(lcio_job_t *job){
     void* handle;
     void (*register_ioengine)(lcio_job_t*);
 
-    sprintf(lib, "lib%s.so", job->engine);
+    sprintf(lib, "./lib%s.so", job->engine);
     strcpy(job->lib_name, lib);
     handle = dlopen(lib, RTLD_NOW);
     if(!handle){
@@ -100,7 +100,7 @@ off_t file_tree_write(struct file_entry* file, lcio_job_t* job){
     err = malloc(sizeof(int));
 
     fd = (int*) job->ioengine->open(file->fname, job);
-    if(*fd<0) perror("Error opening file");
+    //if(*fd<0) perror("open");
     do {
         err = (int*) job->ioengine->write(fd, job, file->size);
         ++count;
@@ -194,10 +194,13 @@ off_t age_file_system(lcio_job_t* job, lcio_dist_t* dist){
         files[i] = create_entry(dist);
     }
     // write the initial set of files
+
     for(i = 0; i < job->num_files_per_proc; i++){
         accum += file_tree_write(files[i], job);
     }
-    printf("rank[%d] :: file_sizes == %lld\n", my_rank, calc_sizes(files, job->num_files_per_proc));
+
+    //printf("rank[%d] :: file_sizes == %lld\n", my_rank, calc_sizes(files, job->num_files_per_proc));
+
     // do a some number of ops
     // in total, we do ops * epochs number of operations
     // epochs are controlled by a barrier to force the system to settle before the next
@@ -208,7 +211,7 @@ off_t age_file_system(lcio_job_t* job, lcio_dist_t* dist){
             //printf("selected file %d :: %s\n", i, files[i]->fname);
             accum += file_tree_update(files[i], job, dist);
         }
-        printf("rank[%d] :: file_sizes == %lld\n", my_rank, calc_sizes(files, job->num_files_per_proc));
+        //printf("rank[%d] :: file_sizes == %lld\n", my_rank, calc_sizes(files, job->num_files_per_proc));
         MPI_Barrier(job->group_comm);
     }
 

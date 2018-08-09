@@ -5,6 +5,60 @@
 #include "lcio.h"
 
 
+void print_help(){
+    char msg[] = {
+            "Usage: lcio [-h] -c CONFIG.INI -d DIST.INI\n"
+            "\n"
+            "LCIO: Lifecycle I/O tool\n\n"
+            "  LCIO is a tool for rapidly aging large parallel filesystems. \n"
+            "  LCIO requires two arguments files to be passed on the command line,\n"
+            "  a configuration file that lays out how the run is supposed to be done, \n"
+            "  and a distribution file that details the file sizes and counts.\n"
+            "  LCIO was designed to work easily with the pcircle/fprof tool, which can generate\n"
+            "  the distribution file. \n"
+            "  LCIO requires MPI. (preferably > 3.0, works with 1.10 but some transient errors)\n"
+            "  Please ensure that the number of processes match in the config file and in the mpirun call\n"
+            "\n"
+            "Flags: \n"
+            "  -c, --config : configuration file for run\n"
+            "  -d, --dist : file containing file size distribution. (section mut be named [dist])\n"
+            "  -h, --help : print this message and exit with MPI_Abort()\n\n"
+    };
+
+    printf("%s", msg);
+}
+
+struct lcio_opts* parse_cli_args(int argc, char** argv){
+    int i;
+    struct lcio_opts *opts;
+
+    if (argc <= 1) return NULL;
+
+    if (strcmp(argv[1], "-h") == 0 || strcmp(argv[1], "--help") == 0){
+        return NULL;
+    }
+
+    opts = malloc(sizeof(struct lcio_opts));
+
+    for(i = 1; i < argc; i += 1){
+
+        if(strcmp(argv[i], "-c") == 0 || strcmp(argv[i], "--config") == 0){
+            i += 1;
+            opts->cfg_fname = strdup(argv[i]);
+        }
+        else if (strcmp(argv[i], "-d") == 0 || strcmp(argv[i], "--dist") == 0){
+            i += 1;
+            opts->dist_fname = strdup(argv[i]);
+        }
+        else if (strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "--help") == 0){
+            free(opts);
+            opts = NULL;
+        }
+    }
+
+    return opts;
+}
+
 
 int main(int argc, char** argv) {
     MPI_Init(&argc, &argv);
@@ -40,7 +94,6 @@ int main(int argc, char** argv) {
 
     MPI_Comm_size(world_comm, &world_sz);
     MPI_Comm_rank(world_comm, &world_rank);
-
     /*
      * NOTE: this does not pack the trailing
      * variables in lcio_job_t. Those are process specific,
@@ -59,7 +112,7 @@ int main(int argc, char** argv) {
 
     /* displacements in struct */
     disps[0] = (MPI_Aint) 0; //tmp_dir
-    disps[1] = cextent * 32; //type
+    disps[1] = cextent * 64; //type
     disps[2] = disps[1] + (cextent * 16); //engine
     disps[3] = disps[2] + (cextent * 8); //num_pes
     disps[4] = disps[3] + iextent; //num_files
@@ -98,11 +151,18 @@ int main(int argc, char** argv) {
      * since that will be needed for creating the correct number of groups.
      */
     if( world_rank == 0) {
-        char *name;
+        struct lcio_opts *opts;
         struct conf *cfg;
         struct conf *dist_cfg;
-        name = argv[1];
-        cfg = parse_conf_file(name);
+
+        opts = parse_cli_args(argc, argv);
+        if(opts == NULL){
+            print_help();
+            MPI_Abort(world_comm, 0);
+            exit(0);
+        }
+
+        cfg = parse_conf_file(opts->cfg_fname);
         if(cfg == NULL){
             perror("fopen");
             fprintf(stderr, "Configuration file not found.\n"
@@ -113,8 +173,8 @@ int main(int argc, char** argv) {
         params = fill_parameters(cfg);
         //print_cfg(cfg);
 
-        name = argv[2];
-        dist_cfg = parse_conf_file(name);
+
+        dist_cfg = parse_conf_file(opts->dist_fname);
         if(dist_cfg == NULL){
             perror("fopen");
             fprintf(stderr, "Distribution file not found.\n"

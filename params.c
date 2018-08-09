@@ -29,6 +29,10 @@ void get_buf_sz(char* field, lcio_job_t* job, char* f){
     unsigned long long exp;
     char scale;
     int err;
+    if(field == NULL){
+        if(!strcmp(f, "block")) job->blk_sz = 0;
+        return;
+    }
 
     err = sscanf(field,"%d%c", &base, &scale);
     if(err != 2){
@@ -100,14 +104,14 @@ void fill_jobs(struct conf *cfg, lcio_param_t* params){
         params->jobs[i]->num_pes = (int)strtol(get_attr("mpi_num_pes", sec), &end, 10);
         params->jobs[i]->num_files = (int)strtol(get_attr("num_files", sec), &end, 10);
         params->jobs[i]->fsync = (int)strtol(get_attr("fsync", sec), &end, 10);
-        params->jobs[i]->ops = (int)strtol(get_attr("ops", sec), &end, 10);
         params->jobs[i]->clean = (int)strtol(get_attr("clean", sec), &end, 10);
-        params->jobs[i]->overlap = (int)strtol(get_attr("overlap", sec), &end, 10);
-        params->jobs[i]->epochs = (int)strtol(get_attr("epochs", sec), &end, 10);
+        if(get_attr("overlap", sec) != NULL)params->jobs[i]->overlap = (int)strtol(get_attr("overlap", sec), &end, 10);
+        if(get_attr("epochs", sec) != NULL)params->jobs[i]->epochs = (int)strtol(get_attr("epochs", sec), &end, 10);
+        if(get_attr("ops", sec) != NULL)params->jobs[i]->ops = (int)strtol(get_attr("ops", sec), &end, 10);
 
         get_buf_sz(get_attr("buffer_size", sec), params->jobs[i], "buffer");
         get_buf_sz(get_attr("block_size", sec), params->jobs[i], "block");
-        sscanf(get_attr("mode", sec), "%c", &(params->jobs[i]->mode));
+        if(get_attr("mode", sec) != NULL) sscanf(get_attr("mode", sec), "%c", &(params->jobs[i]->mode));
 
     }
 }

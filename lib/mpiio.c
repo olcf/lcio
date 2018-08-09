@@ -16,7 +16,7 @@ void* mpiio_create(char* fn, lcio_job_t* job){
      */
     comm = (job->mode == 'S') ? job->group_comm : MPI_COMM_SELF;
 
-    MPI_File_open(comm, fn, mode, job->info, fh);
+    MPI_File_open(comm, fn, mode, MPI_INFO_NULL, fh);
 
     return (void*) fh;
 }
@@ -25,11 +25,11 @@ void* mpiio_open(char* fn, lcio_job_t* job){
     MPI_File* fh;
     MPI_Comm comm;
     fh = malloc(sizeof(MPI_File));
-    int mode = MPI_MODE_APPEND | MPI_MODE_RDWR;
+    int mode = MPI_MODE_CREATE | MPI_MODE_APPEND | MPI_MODE_RDWR;
 
     comm = (job->mode == 'S') ? job->group_comm : MPI_COMM_SELF;
 
-    MPI_File_open(comm, fn, mode, job->info, fh);
+    MPI_File_open(comm, fn, mode, MPI_INFO_NULL, fh);
     return (void*) fh;
 }
 

@@ -67,7 +67,7 @@ typedef struct lcio_dist {
  * main.c:[40-65]
  */
 typedef struct lcio_job {
-    char tmp_dir[32];
+    char tmp_dir[64];
     char type[16];
     char engine[8];
     int num_pes;
@@ -130,6 +130,10 @@ typedef struct lcio_engine {
 
 } lcio_engine_t;
 
+struct lcio_opts {
+    char* dist_fname;
+    char* cfg_fname;
+};
 
 static char* prefix_g ="lcio_tmpf";
 
