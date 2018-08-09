@@ -7,8 +7,9 @@
 
 void print_help(){
     char msg[] = {
-            "Usage: lcio [-h] -c CONFIG.INI -d DIST.INI\n"
+            "Usage: [MPI preamble] lcio [-h] -c CONFIG.INI -d DIST.INI\n"
             "\n"
+            "Example: mpirun -np 2 ./lcio -c config_example.ini -d dist_example.ini\n\n"
             "LCIO: Lifecycle I/O tool\n\n"
             "  LCIO is a tool for rapidly aging large parallel filesystems. \n"
             "  LCIO requires two arguments files to be passed on the command line,\n"
