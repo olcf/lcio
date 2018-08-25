@@ -21,6 +21,18 @@ char* gen_name(){
     return s;
 }
 
+char* gen_name_static(){
+    static long long file_num = 0;
+    int rank;
+    char* s = malloc(sizeof(char) * (MAX_FNAME_SIZE + 6));
+
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    sprintf(s, "pf%d_%lld", rank, file_num);
+    file_num += 1;
+
+    return s;
+}
+
 off_t gen_size(lcio_dist_t* dist){
     float* d = compute_dist(dist);
     int i;
@@ -46,7 +58,7 @@ void delete_entry(struct file_entry* entry){
 struct file_entry* create_entry(lcio_dist_t* dist){
     struct file_entry* rv;
     rv = malloc(sizeof(struct file_entry)+ 1);
-    rv->fname = gen_name();
+    rv->fname = gen_name_static();
     rv->size = gen_size(dist);
     return rv;
 }

@@ -112,6 +112,7 @@ int main(int argc, char** argv) {
     MPI_Datatype MPI_LCIO_JOB;
     MPI_Datatype  MPI_LCIO_STAGE;
 
+    MPI_Barrier(MPI_COMM_WORLD);
 
     MPI_Comm_dup(MPI_COMM_WORLD, &world_comm);
 
