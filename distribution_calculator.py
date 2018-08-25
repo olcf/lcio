@@ -7,7 +7,11 @@ import itertools
 def convert_val(val):
     num_digits = len(str(val))
     divisor = 1
-    if num_digits > 12:
+    if num_digits > 15:
+        divisor = math.pow(1024, 5)
+        suffix = 'PiB'
+        return str(val/divisor) + suffix
+    elif num_digits > 12:
         divisor = math.pow(1024, 4)
         suffix = 'TiB'
         return str(val/divisor) + suffix

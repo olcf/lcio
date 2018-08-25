@@ -15,7 +15,7 @@
 #include <search.h>
 #include "lcio.h"
 
-#define MAX_FNAME_SIZE 64
+#define MAX_FNAME_SIZE 61
 
 static const char alphanum[] = "abcdefghijklmnopqrstuvwxyz"
                                "ABCDEFGHIJKLMNOPQRSTUVWXYZ"

@@ -79,6 +79,7 @@ typedef struct lcio_job {
     int ops;
     int overlap;
     int epochs;
+    int ftrunc;
     char mode;
     //======Datatype ends here=============
     int job_number;

@@ -6,9 +6,22 @@
 #include "file_tree.h"
 
 void execute_aging(lcio_job_t* job, lcio_dist_t* dist){
+    int rank;
+    double t1,t2;
+    MPI_Comm_rank(job->group_comm, &rank);
     job->buffer = calloc(job->buf_sz, sizeof(char));
     memset(job->buffer, 'c', job->buf_sz);
+
+    if(rank == 0) {
+        t1 = MPI_Wtime();
+    }
+    MPI_Barrier(job->group_comm);
     age_file_system(job, dist);
+    MPI_Barrier(job->group_comm);
+    if(rank == 0){
+        t2 = MPI_Wtime();
+        printf("total time: %lf\n", fabs(t2-t1));
+    }
 }
 
 

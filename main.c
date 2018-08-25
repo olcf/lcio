@@ -60,6 +60,35 @@ struct lcio_opts* parse_cli_args(int argc, char** argv){
     return opts;
 }
 
+void check_config(lcio_param_t* params, int size){
+    /*
+     * Need to check and make sure that the user is
+     * not asking for more in a stage than given with
+     * mpirun
+     */
+    int nstage;
+    int i;
+    int njob;
+    lcio_stage_t* mystage;
+    lcio_job_t* job;
+    int accum;
+
+    for(nstage = 0; nstage < params->num_stages; nstage+=1) {
+        mystage = params->stages[nstage];
+        accum = 0;
+        for (i = 0; i < mystage->num_jobs_in_stage; i++) {
+            accum += params->jobs[mystage->jobs_in_stage[i]]->num_pes;
+        }
+        if(size < accum){
+            fprintf(stderr, "Mismatch in processors.\n"
+                            "Have %d ranks, %d ranks needed "
+                            "for stage %d\n", size, accum, i);
+            MPI_Abort(MPI_COMM_WORLD, 1);
+            exit(1);
+        }
+    }
+}
+
 
 int main(int argc, char** argv) {
     MPI_Init(&argc, &argv);
@@ -68,7 +97,7 @@ int main(int argc, char** argv) {
     int my_rank;
     int grp_sz;
     int world_sz;
-    int color =  -1;
+    int color = MPI_UNDEFINED;
     int i, j, res;
     MPI_Comm world_comm;
     MPI_Comm group_comm;
@@ -100,16 +129,16 @@ int main(int argc, char** argv) {
      * variables in lcio_job_t. Those are process specific,
      * and do not need to be broadcast. See lcio.h:[60-77]
      */
-    const int count = 13;
-    int blens[13] = {32,16,8,1,1,1,1,1,1,1,1,1,1};
-    MPI_Datatype array_of_types[13] =
+    const int count = 14;
+    int blens[14] = {32,16,8,1,1,1,1,1,1,1,1,1,1};
+    MPI_Datatype array_of_types[14] =
             {MPI_CHAR, MPI_CHAR, MPI_CHAR,
              MPI_INT, MPI_INT,
              MPI_UNSIGNED_LONG_LONG,
              MPI_UNSIGNED_LONG_LONG,
-             MPI_INT, MPI_INT, MPI_INT, MPI_INT, MPI_INT,
+             MPI_INT, MPI_INT, MPI_INT, MPI_INT, MPI_INT, MPI_INT,
              MPI_CHAR};
-    MPI_Aint disps[13];
+    MPI_Aint disps[14];
 
     /* displacements in struct */
     disps[0] = (MPI_Aint) 0; //tmp_dir
@@ -124,7 +153,8 @@ int main(int argc, char** argv) {
     disps[9] = disps[8] + iextent; //ops
     disps[10] = disps[9] + iextent; //overlap
     disps[11] = disps[10] + iextent; //epochs
-    disps[12] = disps[11] + iextent; //mode
+    disps[12] = disps[11] + iextent; //ftrunc
+    disps[13] = disps[12] + iextent; //mode
 
     /*
      * Create datatype for lcio_job_t
@@ -166,18 +196,22 @@ int main(int argc, char** argv) {
         cfg = parse_conf_file(opts->cfg_fname);
         if(cfg == NULL){
             perror("fopen");
-            fprintf(stderr, "Configuration file not found.\n");
+            fprintf(stderr, "Configuration file not found.\n"
+                            "Did you specify --config?\n");
             MPI_Abort(world_comm, 1);
             exit(1);
         }
         params = fill_parameters(cfg);
+
+        check_config(params, world_sz);
         //print_cfg(cfg);
 
 
         dist_cfg = parse_conf_file(opts->dist_fname);
         if(dist_cfg == NULL){
             perror("fopen");
-            fprintf(stderr, "Distribution file not found.\n");
+            fprintf(stderr, "Distribution file not found.\n"
+                            "Did you specify --dist?\n");
             MPI_Abort(world_comm, 1);
             exit(1);
         }
@@ -223,7 +257,6 @@ int main(int argc, char** argv) {
     }
     MPI_Barrier(world_comm);
 
-
     /*
      * distribution of job config, now need to parcel out the
      * file count distribution
@@ -249,6 +282,8 @@ int main(int argc, char** argv) {
      * Now, we start moving through the stages.
      * Each stage will setup/teardown its own group comm.
      */
+
+
     int nstage;
     for(nstage=0; nstage < params->num_stages; nstage++) {
         if(world_rank == 0){
@@ -265,20 +300,20 @@ int main(int argc, char** argv) {
             }
         }
         MPI_Barrier(world_comm);
-
+        /*
         if (color == -1) {
             fprintf(stderr, "ERROR: color failed: rank %d\n", world_rank);
             MPI_Abort(MPI_COMM_WORLD, 1);
             exit(1);
         }
+        */
         MPI_Comm_split(world_comm, color, world_rank, &group_comm);
-
-        MPI_Comm_size(group_comm, &grp_sz);
-        MPI_Comm_rank(group_comm, &my_rank);
         //printf("stage:%d  wr:%d  gr: %d  color %d \n", nstage, world_rank, my_rank, color);
 
 
         if( color > -1) {
+            MPI_Comm_size(group_comm, &grp_sz);
+            MPI_Comm_rank(group_comm, &my_rank);
             myjob = params->jobs[mystage->jobs_in_stage[color]];
             myjob->group_comm = group_comm;
             myjob->num_files_per_proc = myjob->num_files / grp_sz;

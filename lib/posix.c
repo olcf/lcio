@@ -46,6 +46,19 @@ void *posix_write(void *fdes, lcio_job_t *job, off_t flag) {
     unsigned long long i;
     rv = malloc(sizeof(ssize_t));
     *rv = 0;
+
+    if(job->ftrunc){
+        if(flag == 0) {
+            *rv = ftruncate(*(int*) fdes, job->blk_sz);
+            if(*rv > -1) *rv = (ssize_t) job->blk_sz;
+        }
+        else {
+            *rv = ftruncate(*(int*)fdes, flag);
+            if(*rv > -1) *rv = (ssize_t) flag;
+        }
+        return rv;
+    }
+
     if(flag == 0) {
         for (i = 0; i < job->blk_sz; i += job->buf_sz) {
             *rv += write(*(int *) fdes, job->buffer, job->buf_sz);
@@ -59,6 +72,7 @@ void *posix_write(void *fdes, lcio_job_t *job, off_t flag) {
         }
         *rv += write(*(int *) fdes, job->buffer, rem);
     }
+
     return (void*)rv;
 }
 

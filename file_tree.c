@@ -45,7 +45,7 @@ void delete_entry(struct file_entry* entry){
 
 struct file_entry* create_entry(lcio_dist_t* dist){
     struct file_entry* rv;
-    rv = malloc(sizeof(struct file_entry));
+    rv = malloc(sizeof(struct file_entry)+ 1);
     rv->fname = gen_name();
     rv->size = gen_size(dist);
     return rv;
@@ -100,11 +100,18 @@ off_t file_tree_write(struct file_entry* file, lcio_job_t* job){
     err = malloc(sizeof(int));
 
     fd = (int*) job->ioengine->open(file->fname, job);
-    //if(*fd<0) perror("open");
+    if(*fd<0) {
+        perror("open");
+        fprintf(stderr,"fname %s\n", file->fname);
+    }
     do {
         err = (int*) job->ioengine->write(fd, job, file->size);
         ++count;
-    }while (*err == -1 && count < 10);
+        if(*err == -1) {
+            perror("file_tree_write");
+            fprintf(stderr,"count %d: fname %s\n" ,count, file->fname);
+        }
+    }while (*err == -1 && count < 5);
     if(job->fsync){
         job->ioengine->fsync(fd, job);
     }

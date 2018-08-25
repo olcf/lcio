@@ -109,6 +109,7 @@ void fill_jobs(struct conf *cfg, lcio_param_t* params){
         if(get_attr("epochs", sec) != NULL)params->jobs[i]->epochs = (int)strtol(get_attr("epochs", sec), &end, 10);
         if(get_attr("ops", sec) != NULL)params->jobs[i]->ops = (int)strtol(get_attr("ops", sec), &end, 10);
         if(get_attr("num_runs", sec) != NULL) params->jobs[i]->num_runs = (int)strtol(get_attr("num_runs", sec), &end, 10);
+        if(get_attr("ftrunc", sec) != NULL) params->jobs[i]->ftrunc = (int)strtol(get_attr("ftrunc", sec), &end, 10);
 
         get_buf_sz(get_attr("buffer_size", sec), params->jobs[i], "buffer");
         get_buf_sz(get_attr("block_size", sec), params->jobs[i], "block");
@@ -129,8 +130,6 @@ lcio_param_t* fill_parameters(struct conf *cfg){
 
     if(NULL == (sec = get_section("setup", cfg))) {ELOCAL("no [setup] section");}
     params->num_jobs = (int)strtol(get_attr("num_jobs", sec), &end, 10);
-    params->num_pes = (int)strtol(get_attr("mpi_num_pes", sec), &end, 10);
-    //params->num_runs = (int)strtol(get_attr("num_runs", sec), &end, 10);
     params->num_stages = (int)strtol(get_attr("num_stages", sec), &end, 10);
 
     params->jobs = malloc(sizeof(lcio_job_t*) * params->num_jobs);
