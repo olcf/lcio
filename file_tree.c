@@ -111,7 +111,7 @@ off_t file_tree_write(struct file_entry* file, lcio_job_t* job){
     int count = 0;
     err = malloc(sizeof(int));
 
-    fd = (int*) job->ioengine->open(file->fname, job);
+    fd = (int*) job->ioengine->create(file->fname, job);
     if(*fd<0) {
         perror("open");
         fprintf(stderr,"fname %s\n", file->fname);

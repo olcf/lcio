@@ -91,12 +91,14 @@ void check_config(lcio_param_t* params, int size){
 
 
 int main(int argc, char** argv) {
+
     MPI_Init(&argc, &argv);
 
     int world_rank;
     int my_rank;
     int grp_sz;
     int world_sz;
+    int err = 0;
     int color = MPI_UNDEFINED;
     int i, j, res;
     MPI_Comm world_comm;
@@ -131,7 +133,7 @@ int main(int argc, char** argv) {
      * and do not need to be broadcast. See lcio.h:[60-77]
      */
     const int count = 14;
-    int blens[14] = {32,16,8,1,1,1,1,1,1,1,1,1,1};
+    int blens[14] = {128,16,8,1,1,1,1,1,1,1,1,1,1};
     MPI_Datatype array_of_types[14] =
             {MPI_CHAR, MPI_CHAR, MPI_CHAR,
              MPI_INT, MPI_INT,
@@ -143,7 +145,7 @@ int main(int argc, char** argv) {
 
     /* displacements in struct */
     disps[0] = (MPI_Aint) 0; //tmp_dir
-    disps[1] = cextent * 64; //type
+    disps[1] = cextent * 128; //type
     disps[2] = disps[1] + (cextent * 16); //engine
     disps[3] = disps[2] + (cextent * 8); //num_pes
     disps[4] = disps[3] + iextent; //num_files
@@ -199,28 +201,32 @@ int main(int argc, char** argv) {
             perror("fopen");
             fprintf(stderr, "Configuration file not found.\n"
                             "Did you specify --config?\n");
-            MPI_Abort(world_comm, 1);
-            exit(1);
+            err = 1;
         }
-        params = fill_parameters(cfg);
+        if(err != 1) {
+            params = fill_parameters(cfg);
 
-        check_config(params, world_sz);
-        //print_cfg(cfg);
-
+            check_config(params, world_sz);
+        }
 
         dist_cfg = parse_conf_file(opts->dist_fname);
         if(dist_cfg == NULL){
             perror("fopen");
             fprintf(stderr, "Distribution file not found.\n"
                             "Did you specify --dist?\n");
-            MPI_Abort(world_comm, 1);
-            exit(1);
+            err = 1;
         }
-        dist = fill_dist(dist_cfg);
+        if (err != 1) dist = fill_dist(dist_cfg);
         //print_cfg(dist_cfg);
     } else {
         params = malloc(sizeof(lcio_param_t));
         dist = malloc(sizeof(lcio_dist_t));
+    }
+
+    MPI_Bcast(&err, 1, MPI_INT, 0, world_comm);
+    if(err == 1){
+        MPI_Finalize();
+        exit(0);
     }
 
     /*
