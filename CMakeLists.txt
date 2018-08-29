@@ -17,6 +17,10 @@ include(CheckTypeSize)
 
 check_symbol_exists(posix_fallocate fcntl.h HAVE_POSIX_FALLOCATE)
 
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/config.h.in
+    ${CMAKE_CURRENT_SOURCE_DIR}/config.h)
+
+
 add_library(posix MODULE lib/posix.c)
 
 add_library(mpiio MODULE lib/mpiio.c)

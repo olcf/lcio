@@ -12,6 +12,7 @@
 #include <errno.h>
 #include <mpi.h>
 #include <string.h>
+#include "config.h"
 #include "lcio_math.h"
 #include "conf_parser.h"
 
