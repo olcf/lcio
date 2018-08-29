@@ -238,7 +238,7 @@ off_t convert_suffix(const char *sz){
 
     switch(scale){
         case 't':
-            exp = (1 << 40);
+            exp = (1L << 40);
             break;
         case 'g':
             exp = (1 << 30);

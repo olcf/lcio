@@ -1,17 +1,20 @@
 cmake_minimum_required(VERSION 2.8)
-project(lcio C)
-
-set(CMAKE_C_STANDARD 11)
+project(lcio)
 
 find_package(MPI REQUIRED)
 add_definitions(-DOMPI_SKIP_MPICXX)
+add_definitions(-D_FILE_OFFSET_BITS=64)
 
 include_directories(.)
 include_directories(${MPI_INCLUDE_PATH})
 link_directories(${CMAKE_SOURCE_DIR}/lib)
 
 # Check functions
+
+include(CheckIncludeFile)
 include(CheckSymbolExists)
+include(CheckTypeSize)
+
 check_symbol_exists(posix_fallocate fcntl.h HAVE_POSIX_FALLOCATE)
 
 add_library(posix MODULE lib/posix.c)
