@@ -42,8 +42,9 @@ off_t gen_size(lcio_dist_t* dist){
 
     while(1) {
         x = drand48();
-        i = (int) floor((dist->len - 1) * x) + 1;
-        y = (dist->len-1) * x + 1 - i;
+        i = (int) floor((dist->len) * x);
+        y = (dist->len) * x - i;
+        printf("i: %d  y: %lf  d[i]: %f\n",i,  y, d[i]);
         if(y < d[i]) break;
     }
 
