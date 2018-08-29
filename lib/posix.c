@@ -48,22 +48,7 @@ void *posix_write(void *fdes, lcio_job_t *job, off_t flag) {
     *rv = 0;
 
     if(job->ftrunc){
-        if(flag == 0) {
-#ifdef HAVE_POSIX_FALLOCATE
-            *rv = posix_fallocate(*(int*) fdes, job->blk_sz);
-#else
-            *rv = ftruncate(*(int*) fdes, job->blk_sz);
-#endif
-            if(*rv > -1) *rv = (ssize_t) job->blk_sz;
-        }
-        else {
-#ifdef HAVE_POSIX_FALLOCATE
-            *rv = posix_fallocate(*(int*)fdes, flag);
-#else
-            *rv = ftruncate(*(int*)fdes, flag);
-#endif
-            if(*rv > -1) *rv = (ssize_t) flag;
-        }
+        *rv = posix_fallocate(*(int*)fdes, 0, flag);
         return rv;
     }
 
