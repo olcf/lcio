@@ -10,6 +10,10 @@ include_directories(.)
 include_directories(${MPI_INCLUDE_PATH})
 link_directories(${CMAKE_SOURCE_DIR}/lib)
 
+# Check functions
+include(CheckSymbolExists)
+check_symbol_exists(posix_fallocate fcntl.h HAVE_POSIX_FALLOCATE)
+
 add_library(posix MODULE lib/posix.c)
 
 add_library(mpiio MODULE lib/mpiio.c)
