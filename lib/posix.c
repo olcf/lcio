@@ -47,10 +47,12 @@ void *posix_write(void *fdes, lcio_job_t *job, off_t flag) {
     rv = malloc(sizeof(ssize_t));
     *rv = 0;
 
+#ifdef HAVE_POSIX_FALLOCATE
     if(job->ftrunc){
         *rv = posix_fallocate(*(int*)fdes, 0, flag);
         return rv;
     }
+#endif
 
     if(flag == 0) {
         for (i = 0; i < job->blk_sz; i += job->buf_sz) {
