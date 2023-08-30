@@ -64,3 +64,6 @@ The distribution ini file has only one section, \[dist\], with entries like
 64k = 32  
   
 These are relative counts, so the left hand side is a 'size type' and the right hand side is an 'int'  
+
+## LICENSE
+Unless otherwise noted, the LCIO source files are distributed under the UT Battelle, LLC license found in the LICENSE file.
